@@ -146,6 +146,12 @@ bool DetectorParameters::readDetectorParameters(const FileNode& fn, Ptr<Detector
     checkRead |= readParameter(fn["maxErroneousBitsInBorderRate"], params->maxErroneousBitsInBorderRate);
     checkRead |= readParameter(fn["minOtsuStdDev"], params->minOtsuStdDev);
     checkRead |= readParameter(fn["errorCorrectionRate"], params->errorCorrectionRate);
+    // new aruco functionality
+    checkRead |= readParameter(fn["useAruco3Detection"], params->useAruco3Detection);
+    checkRead |= readParameter(fn["minSideLengthCanonicalImg"], params->minSideLengthCanonicalImg);
+    checkRead |= readParameter(fn["minMarkerLengthRatioOriginalImg"], params->minMarkerLengthRatioOriginalImg);
+    checkRead |= readParameter(fn["cameraMotionSpeed"], params->cameraMotionSpeed);
+    checkRead |= readParameter(fn["useGlobalThreshold"], params->useGlobalThreshold);
     return checkRead;
 }
 
