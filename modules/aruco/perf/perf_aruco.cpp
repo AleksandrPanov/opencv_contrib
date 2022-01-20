@@ -20,7 +20,9 @@ PERF_TEST_P(EstimateAruco, ArucoFirst, ESTIMATE_PARAMS )
     cv::Ptr<cv::aruco::Dictionary> dictionary;
 
     FileStorage fs(dictPath, FileStorage::READ);
-    aruco::Dictionary::readDictionary(fs.root(), dictionary); // set marker from tutorial_dict.yml
+    if (!aruco::Dictionary::readDictionary(fs.root(), dictionary)) {
+        cvtest::SkipTestException("Not founded tutorial_dict.yml");
+    }
 
     Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
     ArucoTestParams params = GetParam();
@@ -162,8 +164,8 @@ static Mat projectMarker(Ptr<aruco::Dictionary> &dictionary, int id, Mat cameraM
 
 TEST(EstimateAruco, ArucoSecond) {
     Mat cameraMatrix = Mat::eye(3, 3, CV_64FC1);
-    Size imgSize(500, 500); // == 3840 x 2160 pixels == 4K
-    //Size imgSize(2880, 2880); // == 3840 x 2160 pixels == 4K
+    //Size imgSize(500, 500);
+    Size imgSize(2880, 2880); // 2880 x 2880 == 3840 x 2160 pixels == 4K
     cameraMatrix.at< double >(0, 0) = cameraMatrix.at< double >(1, 1) = 650;
     cameraMatrix.at< double >(0, 2) = imgSize.width / 2;
     cameraMatrix.at< double >(1, 2) = imgSize.height / 2;
