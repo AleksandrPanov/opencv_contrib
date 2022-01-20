@@ -188,7 +188,7 @@ static void _threshold(InputArray _in, OutputArray _out, int winSize, double con
 static void _findMarkerContours(InputArray _in, vector< vector< Point2f > > &candidates,
                                 vector< vector< Point > > &contoursOut, double minPerimeterRate,
                                 double maxPerimeterRate, double accuracyRate,
-                                double minCornerDistanceRate, int minDistanceToBorder, int minSize) {
+                                double minCornerDistanceRate, int minDistanceToBorder, int minSize = 0) {
 
     CV_Assert(minPerimeterRate > 0 && maxPerimeterRate > 0 && accuracyRate > 0 &&
               minCornerDistanceRate >= 0 && minDistanceToBorder >= 0);
@@ -435,7 +435,6 @@ static float _detectInitialCandidates(const Mat &grey, vector< vector< Point2f >
         else { // first time get threshold with otsu
             otsu_treshold = cv::threshold(grey, thresh, 0, 255, cv::THRESH_BINARY_INV | cv::THRESH_OTSU);
             params->foundGlobalThreshold = true;
-
         }
         // get lines
         const int el_size = 3;
@@ -465,11 +464,12 @@ static float _detectInitialCandidates(const Mat &grey, vector< vector< Point2f >
                 _findMarkerContours(thresh, candidatesArrays[i], contoursArrays[i],
                                     params->minMarkerPerimeterRate, params->maxMarkerPerimeterRate,
                                     params->polygonalApproxAccuracyRate, params->minCornerDistanceRate,
-                                    params->minDistanceToBorder, params->minSideLengthCanonicalImg);
+                                    params->minDistanceToBorder);
             }
         });
     }
     // join candidates
+    // TODO: add simple copying in next PR
     for(int i = 0; i < nScales; i++) {
         for(unsigned int j = 0; j < candidatesArrays[i].size(); j++) {
             candidates.push_back(candidatesArrays[i][j]);
@@ -658,7 +658,7 @@ static uint8_t _identifyOneCandidate(const Ptr<Dictionary>& dictionary, InputArr
     Mat onlyBits =
         candidateBits.rowRange(params->markerBorderBits,
                                candidateBits.rows - params->markerBorderBits)
-            .colRange(params->markerBorderBits, candidateBits.rows - params->markerBorderBits);
+            .colRange(params->markerBorderBits, candidateBits.cols - params->markerBorderBits);
 
     // try to indentify the marker
     if(!dictionary->identify(onlyBits, idx, rotation, params->errorCorrectionRate))
