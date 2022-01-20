@@ -188,7 +188,7 @@ static void _threshold(InputArray _in, OutputArray _out, int winSize, double con
 static void _findMarkerContours(InputArray _in, vector< vector< Point2f > > &candidates,
                                 vector< vector< Point > > &contoursOut, double minPerimeterRate,
                                 double maxPerimeterRate, double accuracyRate,
-                                double minCornerDistanceRate, int minDistanceToBorder, int minSize = 0) {
+                                double minCornerDistanceRate, int minDistanceToBorder, int minSize) {
 
     CV_Assert(minPerimeterRate > 0 && maxPerimeterRate > 0 && accuracyRate > 0 &&
               minCornerDistanceRate >= 0 && minDistanceToBorder >= 0);
@@ -464,7 +464,7 @@ static float _detectInitialCandidates(const Mat &grey, vector< vector< Point2f >
                 _findMarkerContours(thresh, candidatesArrays[i], contoursArrays[i],
                                     params->minMarkerPerimeterRate, params->maxMarkerPerimeterRate,
                                     params->polygonalApproxAccuracyRate, params->minCornerDistanceRate,
-                                    params->minDistanceToBorder);
+                                    params->minDistanceToBorder, params->minSideLengthCanonicalImg);
             }
         });
     }
@@ -483,24 +483,19 @@ static float _detectInitialCandidates(const Mat &grey, vector< vector< Point2f >
 /**
  * @brief Detect square candidates in the input image
  */
-static float _detectCandidates(InputArray _image, vector< vector< vector< Point2f > > >& candidatesSetOut,
+static float _detectCandidates(InputArray _grayImage, vector< vector< vector< Point2f > > >& candidatesSetOut,
                               vector< vector< vector< Point > > >& contoursSetOut, const Ptr<DetectorParameters> &_params) {
 
-    Mat grey = _image.getMat();
-    CV_Assert(grey.total() != 0);
+    Mat grey = _grayImage.getMat();
 
-    /// 1. CONVERT TO GRAY
-    //Mat grey;
-    //_convertToGrey(image, grey);
-
+    /// 1. DETECT FIRST SET OF CANDIDATES
     vector< vector< Point2f > > candidates;
     vector< vector< Point > > contours;
-    /// 2. DETECT FIRST SET OF CANDIDATES
     float new_otsu_global_thresh = _detectInitialCandidates(grey, candidates, contours, _params);
-    /// 3. SORT CORNERS
+    /// 2. SORT CORNERS
     _reorderCandidatesCorners(candidates);
 
-    /// 4. FILTER OUT NEAR CANDIDATE PAIRS
+    /// 3. FILTER OUT NEAR CANDIDATE PAIRS
     // save the outter/inner border (i.e. potential candidates)
     _filterTooCloseCandidates(candidates, candidatesSetOut, contours, contoursSetOut,
                               _params->minMarkerDistanceRate, _params->detectInvertedMarker);
@@ -617,7 +612,6 @@ static uint8_t _identifyOneCandidate(const Ptr<Dictionary>& dictionary, InputArr
                                   const float& scale = 1.f)
 {
     CV_Assert(_corners.size() == 4);
-    CV_Assert(_image.getMat().total() != 0);
     CV_Assert(params->markerBorderBits > 0);
 
     uint8_t typ=1;
@@ -754,19 +748,13 @@ static void _identifyCandidates(InputArray _image,
     int ncandidates = (int)_candidatesSet[0].size();
     vector< vector< Point2f > > accepted;
     vector< vector< Point2f > > rejected;
-
     vector< vector< Point > > contours;
-
-    CV_Assert(_image.getMat().total() != 0);
-
-    Mat grey;
-    _convertToGrey(_image.getMat(), grey);
 
     vector< int > idsTmp(ncandidates, -1);
     vector< int > rotated(ncandidates, 0);
     vector< uint8_t > validCandidates(ncandidates, 0);
 
-    const int min_perimeter = params->minSideLengthCanonicalImg * params->minSideLengthCanonicalImg;
+    const int min_perimeter = params->minSideLengthCanonicalImg * 4;
 
     //// Analyze each of the candidates
     parallel_for_(Range(0, ncandidates), [&](const Range &range) {
@@ -1155,14 +1143,14 @@ float detectMarkers(InputArray _image, const Ptr<Dictionary> &_dictionary, Outpu
     }
 
     /// Step 0: equation (2) from paper [1]
-    const int tau_i_dot = _params->minSideLengthCanonicalImg +
-            (int)((float)std::max(grey.cols, grey.rows) * _params->minMarkerLengthRatioOriginalImg);
+    float fxfy = 1.f;
+    if (_params->useAruco3Detection) {
+        const int tau_i_dot = _params->minSideLengthCanonicalImg +
+                              std::max(grey.cols, grey.rows) * _params->minMarkerLengthRatioOriginalImg;
+        fxfy = (float)_params->minSideLengthCanonicalImg / tau_i_dot;
+    }
 
     //// Step 0.1: resize image with equation (1) from paper [1]
-    float fxfy = (float)_params->minSideLengthCanonicalImg / tau_i_dot;
-    if (!_params->useAruco3Detection) {
-        fxfy = 1.f;
-    }
     const cv::Size seg_img_size = cv::Size(cvRound(fxfy * grey.cols), cvRound(fxfy * grey.rows));
 
     const int image_area = seg_img_size.width * seg_img_size.height;

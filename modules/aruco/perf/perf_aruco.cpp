@@ -25,6 +25,7 @@ PERF_TEST_P(EstimateAruco, ArucoFirst, ESTIMATE_PARAMS )
     Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
     ArucoTestParams params = GetParam();
     detectorParams->useAruco3Detection = get<0>(params);
+    detectorParams->minMarkerLengthRatioOriginalImg = 0.01f;
 
     vector< int > ids;
     vector< vector< Point2f > > corners, rejected;
@@ -54,6 +55,165 @@ PERF_TEST_P(EstimateAruco, ArucoFirst, ESTIMATE_PARAMS )
 
     TEST_CYCLE() aruco::detectMarkers(image, dictionary, corners, ids, detectorParams, rejected);
     SANITY_CHECK_NOTHING();
+}
+
+static double deg2rad(double deg) { return deg * CV_PI / 180.; }
+
+/**
+ * @brief Get rvec and tvec from yaw, pitch and distance
+ */
+static void getSyntheticRT(double yaw, double pitch, double distance, Mat &rvec, Mat &tvec) {
+
+    rvec = Mat(3, 1, CV_64FC1);
+    tvec = Mat(3, 1, CV_64FC1);
+
+    // Rvec
+    // first put the Z axis aiming to -X (like the camera axis system)
+    Mat rotZ(3, 1, CV_64FC1);
+    rotZ.ptr< double >(0)[0] = 0;
+    rotZ.ptr< double >(0)[1] = 0;
+    rotZ.ptr< double >(0)[2] = -0.5 * CV_PI;
+
+    Mat rotX(3, 1, CV_64FC1);
+    rotX.ptr< double >(0)[0] = 0.5 * CV_PI;
+    rotX.ptr< double >(0)[1] = 0;
+    rotX.ptr< double >(0)[2] = 0;
+
+    Mat camRvec, camTvec;
+    composeRT(rotZ, Mat(3, 1, CV_64FC1, Scalar::all(0)), rotX, Mat(3, 1, CV_64FC1, Scalar::all(0)),
+              camRvec, camTvec);
+
+    // now pitch and yaw angles
+    Mat rotPitch(3, 1, CV_64FC1);
+    rotPitch.ptr< double >(0)[0] = 0;
+    rotPitch.ptr< double >(0)[1] = pitch;
+    rotPitch.ptr< double >(0)[2] = 0;
+
+    Mat rotYaw(3, 1, CV_64FC1);
+    rotYaw.ptr< double >(0)[0] = yaw;
+    rotYaw.ptr< double >(0)[1] = 0;
+    rotYaw.ptr< double >(0)[2] = 0;
+
+    composeRT(rotPitch, Mat(3, 1, CV_64FC1, Scalar::all(0)), rotYaw,
+              Mat(3, 1, CV_64FC1, Scalar::all(0)), rvec, tvec);
+
+    // compose both rotations
+    composeRT(camRvec, Mat(3, 1, CV_64FC1, Scalar::all(0)), rvec,
+              Mat(3, 1, CV_64FC1, Scalar::all(0)), rvec, tvec);
+
+    // Tvec, just move in z (camera) direction the specific distance
+    tvec.ptr< double >(0)[0] = 0.;
+    tvec.ptr< double >(0)[1] = 0.;
+    tvec.ptr< double >(0)[2] = distance;
+}
+
+/**
+ * @brief Create a synthetic image of a marker with perspective
+ */
+static Mat projectMarker(Ptr<aruco::Dictionary> &dictionary, int id, Mat cameraMatrix, double yaw,
+                         double pitch, double distance, Size imageSize, int markerBorder,
+                         vector< Point2f > &corners) {
+    // canonical image
+    Mat marker, markerImg;
+    const int markerSizePixels = 100;
+
+    aruco::drawMarker(dictionary, id, markerSizePixels, marker, markerBorder);
+    marker.copyTo(markerImg);
+
+    // get rvec and tvec for the perspective
+    Mat rvec, tvec;
+    getSyntheticRT(yaw, pitch, distance, rvec, tvec);
+
+    const float markerLength = 0.05f;
+    vector< Point3f > markerObjPoints;
+    markerObjPoints.push_back(Point3f(-markerLength / 2.f, +markerLength / 2.f, 0));
+    markerObjPoints.push_back(markerObjPoints[0] + Point3f(markerLength, 0, 0));
+    markerObjPoints.push_back(markerObjPoints[0] + Point3f(markerLength, -markerLength, 0));
+    markerObjPoints.push_back(markerObjPoints[0] + Point3f(0, -markerLength, 0));
+
+    // project markers and draw them
+    Mat distCoeffs(5, 1, CV_64FC1, Scalar::all(0));
+    projectPoints(markerObjPoints, rvec, tvec, cameraMatrix, distCoeffs, corners);
+
+    vector< Point2f > originalCorners;
+    originalCorners.push_back(Point2f(0.f, 0.f));
+    originalCorners.push_back(originalCorners[0]+Point2f((float)markerSizePixels, 0));
+    originalCorners.push_back(originalCorners[0]+Point2f((float)markerSizePixels, (float)markerSizePixels));
+    originalCorners.push_back(originalCorners[0]+Point2f(0, (float)markerSizePixels));
+
+    Mat transformation = getPerspectiveTransform(originalCorners, corners);
+
+    Mat img(imageSize, CV_8UC1, Scalar::all(255));
+    Mat aux;
+    const char borderValue = 127;
+    warpPerspective(markerImg, aux, transformation, imageSize, INTER_NEAREST, BORDER_CONSTANT,
+                    Scalar::all(borderValue));
+
+    // copy only not-border pixels
+    for(int y = 0; y < aux.rows; y++) {
+        for(int x = 0; x < aux.cols; x++) {
+            if(aux.at< unsigned char >(y, x) == borderValue) continue;
+            img.at< unsigned char >(y, x) = aux.at< unsigned char >(y, x);
+        }
+    }
+
+    return img;
+}
+
+TEST(EstimateAruco, ArucoSecond) {
+    Mat cameraMatrix = Mat::eye(3, 3, CV_64FC1);
+    Size imgSize(500, 500); // == 3840 x 2160 pixels == 4K
+    //Size imgSize(2880, 2880); // == 3840 x 2160 pixels == 4K
+    cameraMatrix.at< double >(0, 0) = cameraMatrix.at< double >(1, 1) = 650;
+    cameraMatrix.at< double >(0, 2) = imgSize.width / 2;
+    cameraMatrix.at< double >(1, 2) = imgSize.height / 2;
+    Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_250);
+
+    Ptr<aruco::DetectorParameters> params = aruco::DetectorParameters::create();
+    params->minDistanceToBorder = 1;
+    // marker :: Inverted
+    //CV_ArucoDetectionPerspective::DETECT_INVERTED_MARKER
+    //img = ~img;
+    //params->detectInvertedMarker = true;
+    // CV_ArucoDetectionPerspective::USE_APRILTAG
+    //params->cornerRefinementMethod = cv::aruco::CORNER_REFINE_APRILTAG;
+    //CV_ArucoDetectionPerspective::USE_ARUCO3
+    params->useAruco3Detection = true;
+    params->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+    params->minMarkerLengthRatioOriginalImg = 0.05;
+    int iter = 0;
+    int markerBorder = 1;//iter % 2 + 1;
+    params->markerBorderBits = markerBorder;
+    // detect from different positions
+    for(double distance = 0.1; distance < 0.7; distance += 1.2) {
+        for(int pitch = 0; pitch < 360; pitch += 70) {
+            for(int yaw = 70; yaw <= 120; yaw += 40){
+                int currentId = iter % 250;
+                iter++;
+                vector< Point2f > groundTruthCorners;
+
+                /// create synthetic image
+                Mat img=
+                    projectMarker(dictionary, currentId, cameraMatrix, deg2rad(yaw), deg2rad(pitch),
+                                  distance, imgSize, markerBorder, groundTruthCorners);
+                imwrite("test" + std::to_string(iter) + ".jpg", img);
+
+                // detect markers
+                vector< vector< Point2f > > corners;
+                vector< int > ids;
+                aruco::detectMarkers(img, dictionary, corners, ids, params);
+
+                // check results
+                ASSERT_EQ(1ull, ids.size());
+                ASSERT_EQ(currentId, ids[0]);
+
+                for(int c = 0; c < 4; c++) {
+                    double dist = cv::norm(groundTruthCorners[c] - corners[0][c]);  // TODO cvtest
+                    EXPECT_LE(dist, 5.0);
+                }
+            }
+        }
+    }
 }
 
 }
