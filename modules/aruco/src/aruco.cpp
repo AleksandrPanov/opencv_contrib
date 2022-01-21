@@ -1145,9 +1145,9 @@ float detectMarkers(InputArray _image, const Ptr<Dictionary> &_dictionary, Outpu
     /// Step 0: equation (2) from paper [1]
     float fxfy = 1.f;
     if (_params->useAruco3Detection) {
-        const int tau_i_dot = _params->minSideLengthCanonicalImg +
-                              std::max(grey.cols, grey.rows) * _params->minMarkerLengthRatioOriginalImg;
-        fxfy = (float)_params->minSideLengthCanonicalImg / tau_i_dot;
+        const float tau_i_dot = _params->minSideLengthCanonicalImg +
+                                std::max(grey.cols, grey.rows) * _params->minMarkerLengthRatioOriginalImg;
+        fxfy = _params->minSideLengthCanonicalImg / tau_i_dot;
     }
 
     //// Step 0.1: resize image with equation (1) from paper [1]
