@@ -171,6 +171,42 @@ public:
                         Scalar::all(255));
         return marker_corners;
     }
+
+    std::pair<Mat, map<int, vector<Point2f> > > getProjectMarkersTile(const int numMarkers,
+                                                           const Ptr<aruco::DetectorParameters>& params,
+                                                           const Ptr<aruco::Dictionary>& dictionary)
+    {
+        params->minDistanceToBorder = 1;
+        //USE_ARUCO3
+        params->useAruco3Detection = true;
+        params->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+        params->minSideLengthCanonicalImg = 32;
+        params->markerBorderBits = 1;
+        //Mat tileImage(imgMarkerSize*numMarkers, CV_8UC1, Scalar::all(255));
+        Mat tileImage(Size(240, 240), CV_8UC1, Scalar::all(255));
+        map<int, vector<Point2f> > idCorners;
+
+        int iter = 0, pitch = 0, yaw = 70;
+        for (int i = 0; i < numMarkers; i++)
+        {
+            for (int j = 0; j < numMarkers; j++)
+            {
+                int currentId = iter % 250;
+                auto marker_corners = getProjectMarker(currentId, deg2rad(yaw), deg2rad(pitch), params, dictionary);
+                Mat tmp_roi = tileImage(Rect(i*imgMarkerSize.height, j*imgMarkerSize.width, imgMarkerSize.height, imgMarkerSize.width));
+                marker_corners.first.copyTo(tmp_roi);
+
+                for (Point2f& point: marker_corners.second)
+                    point += Point2f(i*i*imgMarkerSize.height, j*i*imgMarkerSize.width);
+                idCorners[currentId] = marker_corners.second;
+                yaw = (yaw + 40) % 120;
+                currentId++;
+            }
+            pitch = (pitch + 70) % 360;
+        }
+        imwrite("tile_test" + std::to_string(iter) + ".jpg", tileImage);
+        return std::make_pair(std::move(tileImage), std::move(idCorners));
+    }
 };
 
 TEST(EstimateAruco, ArucoThird)
@@ -182,10 +218,10 @@ TEST(EstimateAruco, ArucoThird)
     //USE_ARUCO3
     params->useAruco3Detection = true;
     params->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
-    params->minSideLengthCanonicalImg = 16;
+    params->minSideLengthCanonicalImg = 32;
     params->markerBorderBits = 1;
-    MarkerPainter painter(Size(120, 120));
-    //std::map<int, std::pair<Mat, vector<Point2f> > > answers;
+    MarkerPainter painter(Size(240, 240));
+    //painter.getProjectMarkersTile(2, params, dictionary);
     int iter = 0;
     // detect from different positions
     for(int pitch = 0; pitch < 360; pitch += 70) {
@@ -196,7 +232,6 @@ TEST(EstimateAruco, ArucoThird)
             //rectangle(img, Point2i(img.rows, img.cols)*0.9, Point2i(img.rows, img.cols)*0.95, Scalar(0, 0, 0), 4);
             //imwrite("test" + std::to_string(iter) + ".jpg", marker_corners.first);
 
-            ///answers[currentId] = painter.getProjectMarker(currentId, deg2rad(yaw), deg2rad(pitch), params, dictionary);
             // detect markers
             vector<vector<Point2f> > corners;
             vector<int> ids;
