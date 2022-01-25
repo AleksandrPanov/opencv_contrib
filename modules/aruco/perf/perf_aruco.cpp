@@ -77,7 +77,7 @@ public:
         imgMarkerSize = size;
         CV_Assert(imgMarkerSize.width == imgMarkerSize.height);
         cameraMatrix = Mat::eye(3, 3, CV_64FC1);
-        cameraMatrix.at<double>(0, 0) = cameraMatrix.at<double>(1, 1) = 650;
+        cameraMatrix.at<double>(0, 0) = cameraMatrix.at<double>(1, 1) = imgMarkerSize.width;
         cameraMatrix.at<double>(0, 2) = imgMarkerSize.width / 2;
         cameraMatrix.at<double>(1, 2) = imgMarkerSize.height / 2;
     }
@@ -143,7 +143,7 @@ public:
         aruco::drawMarker(dictionary, id, markerSizePixels, img, parameters->markerBorderBits);
 
         // get rvec and tvec for the perspective
-        const double distance = 0.4;
+        const double distance = 0.1;
         auto rvec_tvec = MarkerPainter::getSyntheticRT(yaw, pitch, distance);
         Mat& rvec = rvec_tvec.first;
         Mat& tvec = rvec_tvec.second;
@@ -182,8 +182,7 @@ public:
         params->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
         params->minSideLengthCanonicalImg = 32;
         params->markerBorderBits = 1;
-        //Mat tileImage(imgMarkerSize*numMarkers, CV_8UC1, Scalar::all(255));
-        Mat tileImage(Size(240, 240), CV_8UC1, Scalar::all(255));
+        Mat tileImage(imgMarkerSize*numMarkers, CV_8UC1, Scalar::all(255));
         map<int, vector<Point2f> > idCorners;
 
         int iter = 0, pitch = 0, yaw = 70;
@@ -193,24 +192,52 @@ public:
             {
                 int currentId = iter % 250;
                 auto marker_corners = getProjectMarker(currentId, deg2rad(yaw), deg2rad(pitch), params, dictionary);
-                Mat tmp_roi = tileImage(Rect(i*imgMarkerSize.height, j*imgMarkerSize.width, imgMarkerSize.height, imgMarkerSize.width));
+                Point2f startPoint(i*imgMarkerSize.height, j*imgMarkerSize.width);
+                Mat tmp_roi = tileImage(Rect(startPoint.x, startPoint.y, imgMarkerSize.height, imgMarkerSize.width));
                 marker_corners.first.copyTo(tmp_roi);
 
                 for (Point2f& point: marker_corners.second)
-                    point += Point2f(i*i*imgMarkerSize.height, j*i*imgMarkerSize.width);
+                    point += startPoint;
                 idCorners[currentId] = marker_corners.second;
-                yaw = (yaw + 40) % 120;
+                yaw = (yaw + 40) % 121;
                 currentId++;
             }
             pitch = (pitch + 70) % 360;
         }
-        imwrite("tile_test" + std::to_string(iter) + ".jpg", tileImage);
         return std::make_pair(std::move(tileImage), std::move(idCorners));
     }
 };
 
+PERF_TEST_P(EstimateAruco, ArucoSecond, ESTIMATE_PARAMS )
+{
+    ArucoTestParams testParams = GetParam();
+    Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_250);
+    Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
+    detectorParams->minDistanceToBorder = 1;
+    detectorParams->markerBorderBits = 1;
+    detectorParams->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
+
+    //USE_ARUCO3
+    detectorParams->useAruco3Detection = get<0>(testParams);
+    if (detectorParams->useAruco3Detection) {
+        detectorParams->minSideLengthCanonicalImg = 32;
+        detectorParams->minMarkerLengthRatioOriginalImg = 0.1f;
+    }
+
+    MarkerPainter painter(Size(1000, 1000));
+    auto image_map = painter.getProjectMarkersTile(10, detectorParams, dictionary);
+    //imwrite("tile_test.jpg", image_map.first);
+
+    // detect markers
+    vector<vector<Point2f> > corners;
+    vector<int> ids;
+    TEST_CYCLE() aruco::detectMarkers(image_map.first, dictionary, corners, ids, detectorParams);
+    SANITY_CHECK_NOTHING();
+}
+
 TEST(EstimateAruco, ArucoThird)
 {
+    //setNumThreads(1);
     Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_250);
     Ptr<aruco::DetectorParameters> params = aruco::DetectorParameters::create();
     params->minDistanceToBorder = 1;
@@ -218,18 +245,16 @@ TEST(EstimateAruco, ArucoThird)
     //USE_ARUCO3
     params->useAruco3Detection = true;
     params->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
-    params->minSideLengthCanonicalImg = 32;
+    params->minSideLengthCanonicalImg = 16;
     params->markerBorderBits = 1;
-    MarkerPainter painter(Size(240, 240));
-    //painter.getProjectMarkersTile(2, params, dictionary);
+    MarkerPainter painter(Size(2000, 2000));
+    painter.getProjectMarkersTile(2, params, dictionary);
     int iter = 0;
     // detect from different positions
     for(int pitch = 0; pitch < 360; pitch += 70) {
         for (int yaw = 70; yaw <= 120; yaw += 40) {
             int currentId = iter % 250;
             auto marker_corners = painter.getProjectMarker(currentId, deg2rad(yaw), deg2rad(pitch), params, dictionary);
-            //rectangle(img, groundTruthCorners[0]/4, 3*groundTruthCorners[0]/4, Scalar(0, 0, 0), 4);
-            //rectangle(img, Point2i(img.rows, img.cols)*0.9, Point2i(img.rows, img.cols)*0.95, Scalar(0, 0, 0), 4);
             //imwrite("test" + std::to_string(iter) + ".jpg", marker_corners.first);
 
             // detect markers
@@ -239,7 +264,31 @@ TEST(EstimateAruco, ArucoThird)
             // check results
             ASSERT_EQ(1ull, ids.size());
             ASSERT_EQ(currentId, ids[0]);
-            for(int c = 0; c < 4; c++)
+            for (int c = 0; c < 4; c++)
+            {
+                double dist = cv::norm(marker_corners.second[c] - corners[0][c]);
+                EXPECT_LE(dist, 5.0);
+            }
+            iter++;
+        }
+    }
+    params->minMarkerLengthRatioOriginalImg = 0.1;
+    iter = 0;
+    // detect from different positions
+    for(int pitch = 0; pitch < 360; pitch += 70) {
+        for (int yaw = 70; yaw <= 120; yaw += 40) {
+            int currentId = iter % 250;
+            auto marker_corners = painter.getProjectMarker(currentId, deg2rad(yaw), deg2rad(pitch), params, dictionary);
+            //imwrite("test" + std::to_string(iter) + ".jpg", marker_corners.first);
+
+            // detect markers
+            vector<vector<Point2f> > corners;
+            vector<int> ids;
+            aruco::detectMarkers(marker_corners.first, dictionary, corners, ids, params);
+            // check results
+            ASSERT_EQ(1ull, ids.size());
+            ASSERT_EQ(currentId, ids[0]);
+            for (int c = 0; c < 4; c++)
             {
                 double dist = cv::norm(marker_corners.second[c] - corners[0][c]);
                 EXPECT_LE(dist, 5.0);
