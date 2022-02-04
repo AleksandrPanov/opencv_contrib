@@ -103,6 +103,7 @@ static void projectMarker(Mat &img, Ptr<aruco::Dictionary> &dictionary, int id,
     Mat markerImg;
     const int markerSizePixels = 100;
     aruco::drawMarker(dictionary, id, markerSizePixels, markerImg, markerBorder);
+    imwrite(std::to_string(id) + "first.png", markerImg);
 
     // projected corners
     Mat distCoeffs(5, 1, CV_64FC1, Scalar::all(0));
@@ -130,6 +131,7 @@ static void projectMarker(Mat &img, Ptr<aruco::Dictionary> &dictionary, int id,
             img.at< unsigned char >(y, x) = aux.at< unsigned char >(y, x);
         }
     }
+    imwrite(std::to_string(id) + "second.png", img);
 }
 
 
@@ -143,6 +145,7 @@ static Mat projectBoard(Ptr<aruco::GridBoard> &board, Mat cameraMatrix, double y
     getSyntheticRT(yaw, pitch, distance, rvec, tvec);
 
     Mat img = Mat(imageSize, CV_8UC1, Scalar::all(255));
+    std::cout << rvec << tvec;
     for(unsigned int m = 0; m < board->ids.size(); m++) {
         projectMarker(img, board->dictionary, board->ids[m], board->objPoints[m], cameraMatrix, rvec,
                       tvec, markerBorder);
@@ -200,9 +203,11 @@ void CV_ArucoBoardPose::run(int) {
                 Ptr<aruco::DetectorParameters> params = aruco::DetectorParameters::create();
                 params->minDistanceToBorder = 3;
                 params->markerBorderBits = markerBorder;
+                imwrite("???" + std::to_string(iter) + ".png", img);
                 aruco::detectMarkers(img, dictionary, corners, ids, params);
 
                 if(ids.size() == 0) {
+                    imwrite("bad_test" + std::to_string(iter) + ".png", img);
                     ts->printf(cvtest::TS::LOG, "Marker detection failed in Board test");
                     ts->set_failed_test_info(cvtest::TS::FAIL_MISMATCH);
                     return;
