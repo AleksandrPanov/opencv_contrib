@@ -40,6 +40,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include "opencv2/aruco.hpp"
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include <iostream>>
 
 #include "apriltag_quad_thresh.hpp"
 #include "zarray.hpp"
@@ -1249,7 +1250,7 @@ class SinglePoseEstimationParallel : public ParallelLoopBody {
 
         for(int i = begin; i < end; i++) {
             solvePnP(markerObjPoints, corners.getMat(i), cameraMatrix, distCoeffs,
-                    rvecs.at<Vec3d>(i), tvecs.at<Vec3d>(i));
+                    rvecs.at<Vec3d>(i), tvecs.at<Vec3d>(i), false, cv::SOLVEPNP_IPPE_SQUARE);
         }
     }
 
@@ -1275,6 +1276,7 @@ void estimatePoseSingleMarkers(InputArrayOfArrays _corners, float markerLength,
 
     Mat markerObjPoints;
     _getSingleMarkerObjectPoints(markerLength, markerObjPoints);
+    cout << markerObjPoints << endl;
     int nMarkers = (int)_corners.total();
     _rvecs.create(nMarkers, 1, CV_64FC3);
     _tvecs.create(nMarkers, 1, CV_64FC3);
