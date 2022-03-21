@@ -40,6 +40,7 @@ the use of this software, even if advised of the possibility of such damage.
 #define __OPENCV_ARUCO_HPP__
 
 #include <opencv2/core.hpp>
+#include <opencv2/calib3d.hpp>
 #include <vector>
 #include "opencv2/aruco/dictionary.hpp"
 
@@ -254,7 +255,8 @@ CV_EXPORTS_W void detectMarkers(InputArray image, const Ptr<Dictionary> &diction
  */
 CV_EXPORTS_W void estimatePoseSingleMarkers(InputArrayOfArrays corners, float markerLength,
                                             InputArray cameraMatrix, InputArray distCoeffs,
-                                            OutputArray rvecs, OutputArray tvecs, OutputArray _objPoints = noArray());
+                                            OutputArray rvecs, OutputArray tvecs, OutputArray _objPoints = noArray(),
+                                            int flags = cv::SOLVEPNP_ITERATIVE);
 
 
 
