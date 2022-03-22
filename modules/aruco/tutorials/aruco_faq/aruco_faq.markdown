@@ -149,3 +149,17 @@ You can cite the original ArUco library:
 > S. Garrido-Jurado, R. Muñoz-Salinas, F. J. Madrid-Cuevas, and M. J. Marín-Jiménez. 2014.
 > "Automatic generation and detection of highly reliable fiducial markers under occlusion".
 > Pattern Recogn. 47, 6 (June 2014), 2280-2292. DOI=10.1016/j.patcog.2014.01.005
+
+Problems and solutions
+------
+
+- Incorrect ARUCO detection with bigger markers in high resolution images.
+  - Try increasing adaptiveThreshWinSizeMin, adaptiveThreshWinSizeMax and/or decreasing adaptiveThreshConstant.
+  - Try reducing the image resolution to VGA.
+  - See issue https://github.com/opencv/opencv_contrib/issues/2811
+- Incorrect estimation of the pose of a single markers.
+  - It is important to remark that the estimation of the pose using only 4 coplanar points is subject to ambiguity. In general, the ambiguity can be solved, if the camera is near to the marker. However, as the marker becomes small, the errors in the corner estimation grows and ambiguity comes as a problem.
+  - Try increasing the size of the marker you're using, and you can also try non-symmetrical (aruco_dict_utils.cpp) markers to avoid collisions.
+  - Use multiple markers (ArUco/ChArUco/Diamonds boards) and pose estimation with estimatePoseBoard(), estimatePoseCharucoBoard()
+  - Use solvePnP() with the SOLVEPNP_IPPE_SQUARE option.
+  - See issue https://github.com/opencv/opencv/issues/8813
