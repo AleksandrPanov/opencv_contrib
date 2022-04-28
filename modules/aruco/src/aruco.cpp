@@ -38,7 +38,7 @@ the use of this software, even if advised of the possibility of such damage.
 
 #include "precomp.hpp"
 #include "opencv2/aruco.hpp"
-#include <opencv2/imgproc.hpp>
+#include "opencv2/aruco/aruco_utils.hpp"
 #include "apriltag/apriltag_quad_thresh.hpp"
 
 #include <cmath>
@@ -139,20 +139,6 @@ bool DetectorParameters::readDetectorParameters(const FileNode& fn)
     checkRead |= readParameter(fn["minSideLengthCanonicalImg"], this->minSideLengthCanonicalImg);
     checkRead |= readParameter(fn["minMarkerLengthRatioOriginalImg"], this->minMarkerLengthRatioOriginalImg);
     return checkRead;
-}
-
-
-/**
-  * @brief Convert input image to gray if it is a 3-channels image
-  */
-static void _convertToGrey(InputArray _in, OutputArray _out) {
-
-    CV_Assert(_in.type() == CV_8UC1 || _in.type() == CV_8UC3);
-
-    if(_in.type() == CV_8UC3)
-        cvtColor(_in, _out, COLOR_BGR2GRAY);
-    else
-        _in.copyTo(_out);
 }
 
 
@@ -628,39 +614,6 @@ static uint8_t _identifyOneCandidate(const Ptr<Dictionary>& dictionary, InputArr
         return 0;
 
     return typ;
-}
-
-/**
- * @brief Copy the contents of a corners vector to an OutputArray, settings its size.
- */
-static void _copyVector2Output(vector< vector< Point2f > > &vec, OutputArrayOfArrays out, const float scale = 1.f) {
-    out.create((int)vec.size(), 1, CV_32FC2);
-
-    if(out.isMatVector()) {
-        for (unsigned int i = 0; i < vec.size(); i++) {
-            out.create(4, 1, CV_32FC2, i);
-            Mat &m = out.getMatRef(i);
-            Mat(Mat(vec[i]).t()*scale).copyTo(m);
-        }
-    }
-    else if(out.isUMatVector()) {
-        for (unsigned int i = 0; i < vec.size(); i++) {
-            out.create(4, 1, CV_32FC2, i);
-            UMat &m = out.getUMatRef(i);
-            Mat(Mat(vec[i]).t()*scale).copyTo(m);
-        }
-    }
-    else if(out.kind() == _OutputArray::STD_VECTOR_VECTOR){
-        for (unsigned int i = 0; i < vec.size(); i++) {
-            out.create(4, 1, CV_32FC2, i);
-            Mat m = out.getMat(i);
-            Mat(Mat(vec[i]).t()*scale).copyTo(m);
-        }
-    }
-    else {
-        CV_Error(cv::Error::StsNotImplemented,
-                 "Only Mat vector, UMat vector, and vector<vector> OutputArrays are currently supported.");
-    }
 }
 
 /**
