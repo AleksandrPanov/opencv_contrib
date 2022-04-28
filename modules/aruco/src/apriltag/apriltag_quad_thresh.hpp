@@ -19,6 +19,7 @@
 #ifndef _OPENCV_APRIL_QUAD_THRESH_HPP_
 #define _OPENCV_APRIL_QUAD_THRESH_HPP_
 
+#include <opencv2/imgproc.hpp>
 #include "opencv2/aruco.hpp"
 #include "unionfind.hpp"
 #include "zmaxheap.hpp"
@@ -120,6 +121,16 @@ void threshold(const Mat mIm, const Ptr<DetectorParameters> &parameters, Mat& mT
  * @return
  */
 zarray_t *apriltag_quad_thresh(const Ptr<DetectorParameters> &parameters, const Mat & mImg, std::vector< std::vector< Point > > &contours);
+
+/**
+ *
+ * @param im_orig
+ * @param _params
+ * @param candidates
+ * @param contours
+ */
+void _apriltag(Mat im_orig, const Ptr<DetectorParameters> & _params, std::vector< std::vector< Point2f > > &candidates,
+        std::vector< std::vector< Point > > &contours);
 
 }}
 #endif

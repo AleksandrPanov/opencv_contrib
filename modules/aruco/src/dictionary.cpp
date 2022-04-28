@@ -41,7 +41,7 @@ the use of this software, even if advised of the possibility of such damage.
 #include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
 #include "predefined_dictionaries.hpp"
-#include "predefined_dictionaries_apriltag.hpp"
+#include "apriltag/predefined_dictionaries_apriltag.hpp"
 #include "opencv2/core/hal/hal.hpp"
 
 namespace cv {
