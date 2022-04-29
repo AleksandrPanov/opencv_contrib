@@ -908,6 +908,8 @@ void detectMarkers(InputArray _image, const Ptr<Dictionary> &_dictionary, Output
     else {
         // always turn on corner refinement in case of Aruco3, due to upsampling
         _params->cornerRefinementMethod = CORNER_REFINE_SUBPIX;
+        // only CORNER_REFINE_SUBPIX implement correctly for useAruco3Detection
+        // TODO: update other CORNER_REFINE methods
     }
 
     /// Step 0: equation (2) from paper [1]
@@ -959,26 +961,22 @@ void detectMarkers(InputArray _image, const Ptr<Dictionary> &_dictionary, Output
     _identifyCandidates(grey, grey_pyramid, candidatesSet, contoursSet, _dictionary,
                         candidates, contours, ids, _params, _rejectedImgPoints);
 
-    // copy to output arrays
-    _copyVector2Output(candidates, _corners);
-    Mat(ids).copyTo(_ids);
-
     /// STEP 3: Corner refinement :: use corner subpix
     if( _params->cornerRefinementMethod == CORNER_REFINE_SUBPIX ) {
         CV_Assert(_params->cornerRefinementWinSize > 0 && _params->cornerRefinementMaxIterations > 0 &&
                   _params->cornerRefinementMinAccuracy > 0);
         // Do subpixel estimation. In Aruco3 start on the lowest pyramid level and upscale the corners
-        parallel_for_(Range(0, _corners.cols()), [&](const Range& range) {
+        parallel_for_(Range(0, (int)candidates.size()), [&](const Range& range) {
             const int begin = range.start;
             const int end = range.end;
 
             for (int i = begin; i < end; i++) {
                 if (_params->useAruco3Detection) {
                     const float scale_init = (float) grey_pyramid[closest_pyr_image_idx].cols / grey.cols;
-                    findCornerInPyrImage(scale_init, closest_pyr_image_idx, grey_pyramid, _corners.getMat(i), _params);
+                    findCornerInPyrImage(scale_init, closest_pyr_image_idx, grey_pyramid, Mat(candidates[i]), _params);
                 }
                 else
-                cornerSubPix(grey, _corners.getMat(i),
+                cornerSubPix(grey, Mat(candidates[i]),
                              Size(_params->cornerRefinementWinSize, _params->cornerRefinementWinSize),
                              Size(-1, -1),
                              TermCriteria(TermCriteria::MAX_ITER | TermCriteria::EPS,
@@ -994,21 +992,27 @@ void detectMarkers(InputArray _image, const Ptr<Dictionary> &_dictionary, Output
         if(! _ids.empty()){
 
             // do corner refinement using the contours for each detected markers
-            parallel_for_(Range(0, _corners.cols()), [&](const Range& range) {
+            parallel_for_(Range(0, (int)candidates.size()), [&](const Range& range) {
                 for (int i = range.start; i < range.end; i++) {
                     _refineCandidateLines(contours[i], candidates[i]);
                 }
             });
-
-            // copy the corners to the output array
-            _copyVector2Output(candidates, _corners);
         }
     }
-    if (_params->cornerRefinementMethod != CORNER_REFINE_APRILTAG &&
-        _params->cornerRefinementMethod != CORNER_REFINE_SUBPIX) {
+
+    if (_params->cornerRefinementMethod != CORNER_REFINE_SUBPIX && fxfy != 1.f) {
+        // only CORNER_REFINE_SUBPIX implement correctly for useAruco3Detection
+        // TODO: update other CORNER_REFINE methods
+
         // scale to orignal size, this however will lead to inaccurate detections!
-        _copyVector2Output(candidates, _corners, 1.f/fxfy);
+        for (auto &vecPoints : candidates)
+            for (auto &point : vecPoints)
+                point *= 1.f/fxfy;
     }
+
+    // copy to output arrays
+    _copyVector2Output(candidates, _corners);
+    Mat(ids).copyTo(_ids);
 }
 
 /**
