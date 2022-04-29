@@ -462,12 +462,10 @@ static void _detectCandidates(InputArray _grayImage, vector< vector< vector< Poi
   * @brief Given an input image and candidate corners, extract the bits of the candidate, including
   * the border bits
   */
-static Mat _extractBits(InputArray _image, InputArray _corners, int markerSize,
-                        int markerBorderBits, int cellSize, double cellMarginRate,
-                        double minStdDevOtsu) {
-
+static Mat _extractBits(InputArray _image, const vector<Point2f>& corners, int markerSize,
+                        int markerBorderBits, int cellSize, double cellMarginRate, double minStdDevOtsu) {
     CV_Assert(_image.getMat().channels() == 1);
-    CV_Assert(_corners.total() == 4);
+    CV_Assert(corners.size() == 4ull);
     CV_Assert(markerBorderBits > 0 && cellSize > 0 && cellMarginRate >= 0 && cellMarginRate <= 1);
     CV_Assert(minStdDevOtsu >= 0);
 
@@ -485,7 +483,7 @@ static Mat _extractBits(InputArray _image, InputArray _corners, int markerSize,
     resultImgCorners.ptr< Point2f >(0)[3] = Point2f(0, (float)resultImgSize - 1);
 
     // remove perspective
-    Mat transformation = getPerspectiveTransform(_corners, resultImgCorners);
+    Mat transformation = getPerspectiveTransform(corners, resultImgCorners);
     warpPerspective(_image, resultImg, transformation, Size(resultImgSize, resultImgSize),
                     INTER_NEAREST);
 
