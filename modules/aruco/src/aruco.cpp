@@ -729,31 +729,17 @@ static void _identifyCandidates(InputArray grey,
 
 
 /**
-  * @brief Return object points for the system centered in a middle (by default) or in a top left corner of single
-  * marker, given the marker length
+  * @brief Return object points for the system centered in a single marker, given the marker length
   */
-static void _getSingleMarkerObjectPoints(float markerLength, OutputArray _objPoints,
-                                         EstimateParameters estimateParameters) {
-
+static Mat _getSingleMarkerObjectPoints(float markerLength) {
     CV_Assert(markerLength > 0);
-
-    _objPoints.create(4, 1, CV_32FC3);
-    Mat objPoints = _objPoints.getMat();
+    Mat objPoints(4, 1, CV_32FC3);
     // set coordinate system in the top-left corner of the marker, with Z pointing out
-    if (estimateParameters.pattern == CW_top_left_corner) {
-        objPoints.ptr<Vec3f>(0)[0] = Vec3f(0.f, 0.f, 0);
-        objPoints.ptr<Vec3f>(0)[1] = Vec3f(markerLength, 0.f, 0);
-        objPoints.ptr<Vec3f>(0)[2] = Vec3f(markerLength, markerLength, 0);
-        objPoints.ptr<Vec3f>(0)[3] = Vec3f(0.f, markerLength, 0);
-    }
-    else if (estimateParameters.pattern == CCW_center) {
-        objPoints.ptr<Vec3f>(0)[0] = Vec3f(-markerLength/2.f, markerLength/2.f, 0);
-        objPoints.ptr<Vec3f>(0)[1] = Vec3f(markerLength/2.f, markerLength/2.f, 0);
-        objPoints.ptr<Vec3f>(0)[2] = Vec3f(markerLength/2.f, -markerLength/2.f, 0);
-        objPoints.ptr<Vec3f>(0)[3] = Vec3f(-markerLength/2.f, -markerLength/2.f, 0);
-    }
-    else
-        CV_Error(Error::StsBadArg, "Unknown estimateParameters pattern");
+    objPoints.ptr< Vec3f >(0)[0] = Vec3f(0.f, 0.f, 0);
+    objPoints.ptr< Vec3f >(0)[1] = Vec3f(markerLength, 0.f, 0);
+    objPoints.ptr< Vec3f >(0)[2] = Vec3f(markerLength, markerLength, 0);
+    objPoints.ptr< Vec3f >(0)[3] = Vec3f(0.f, markerLength, 0);
+    return objPoints;
 }
 
 /**
@@ -839,10 +825,7 @@ static void _refineCandidateLines(std::vector<Point>& nContours, std::vector<Poi
 		cntPts[group].push_back(contour2f[i]);
 	}
     for (int i = 0; i < 4; i++)
-    {
         CV_Assert(cornerIndex[i] != -1);
-    }
-
 	// saves extra group into corresponding
 	if( !cntPts[4].empty() ){
 		for( unsigned int i=0; i < cntPts[4].size() ; i++ )
@@ -1034,13 +1017,11 @@ void detectMarkers(InputArray _image, const Ptr<Dictionary> &_dictionary, Output
   */
 void estimatePoseSingleMarkers(InputArrayOfArrays _corners, float markerLength,
                                InputArray _cameraMatrix, InputArray _distCoeffs,
-                               OutputArray _rvecs, OutputArray _tvecs, OutputArray _objPoints,
-                               Ptr<EstimateParameters> estimateParameters) {
+                               OutputArray _rvecs, OutputArray _tvecs, OutputArray _objPoints) {
 
     CV_Assert(markerLength > 0);
 
-    Mat markerObjPoints;
-    _getSingleMarkerObjectPoints(markerLength, markerObjPoints, *estimateParameters);
+    Mat markerObjPoints = _getSingleMarkerObjectPoints(markerLength);
     int nMarkers = (int)_corners.total();
     _rvecs.create(nMarkers, 1, CV_64FC3);
     _tvecs.create(nMarkers, 1, CV_64FC3);
@@ -1054,7 +1035,7 @@ void estimatePoseSingleMarkers(InputArrayOfArrays _corners, float markerLength,
 
         for (int i = begin; i < end; i++) {
             solvePnP(markerObjPoints, _corners.getMat(i), _cameraMatrix, _distCoeffs, rvecs.at<Vec3d>(i),
-                     tvecs.at<Vec3d>(i), estimateParameters->solvePnPMethod);
+                     tvecs.at<Vec3d>(i));
         }
     });
 
