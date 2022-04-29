@@ -157,7 +157,7 @@ static void _threshold(InputArray _in, OutputArray _out, int winSize, double con
   * @brief Given a tresholded image, find the contours, calculate their polygonal approximation
   * and take those that accomplish some conditions
   */
-static void _findMarkerContours(InputArray _in, vector< vector< Point2f > > &candidates,
+static void _findMarkerContours(const Mat &in, vector< vector< Point2f > > &candidates,
                                 vector< vector< Point > > &contoursOut, double minPerimeterRate,
                                 double maxPerimeterRate, double accuracyRate,
                                 double minCornerDistanceRate, int minDistanceToBorder, int minSize) {
@@ -167,9 +167,9 @@ static void _findMarkerContours(InputArray _in, vector< vector< Point2f > > &can
 
     // calculate maximum and minimum sizes in pixels
     unsigned int minPerimeterPixels =
-        (unsigned int)(minPerimeterRate * max(_in.getMat().cols, _in.getMat().rows));
+        (unsigned int)(minPerimeterRate * max(in.cols, in.rows));
     unsigned int maxPerimeterPixels =
-        (unsigned int)(maxPerimeterRate * max(_in.getMat().cols, _in.getMat().rows));
+        (unsigned int)(maxPerimeterRate * max(in.cols, in.rows));
 
     // for aruco3 functionality
     if (minSize != 0) {
@@ -177,7 +177,7 @@ static void _findMarkerContours(InputArray _in, vector< vector< Point2f > > &can
     }
 
     Mat contoursImg;
-    _in.getMat().copyTo(contoursImg);
+    in.copyTo(contoursImg);
     vector< vector< Point > > contours;
     findContours(contoursImg, contours, RETR_LIST, CHAIN_APPROX_NONE);
     // now filter list of contours
