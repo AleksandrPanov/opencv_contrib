@@ -10,7 +10,6 @@
 
 namespace cv {
 namespace aruco {
-
 /**
  * @brief Copy the contents of a corners vector to an OutputArray, settings its size.
  */
@@ -80,7 +79,7 @@ static std::vector<std::vector<Point2f> > getVectors(InputArrayOfArrays& in) {
 /**
   * @brief Convert input image to gray if it is a 3-channels image
   */
-static void _convertToGrey(InputArray _in, OutputArray _out) {
+static inline void _convertToGrey(InputArray _in, OutputArray _out) {
 
     CV_Assert(_in.type() == CV_8UC1 || _in.type() == CV_8UC3);
 
@@ -92,5 +91,4 @@ static void _convertToGrey(InputArray _in, OutputArray _out) {
 
 }
 }
-
 #endif
