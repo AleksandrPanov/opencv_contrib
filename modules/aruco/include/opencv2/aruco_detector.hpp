@@ -211,7 +211,6 @@ CV_WRAP static Ptr<ArucoDetector> create(const Ptr<Dictionary> &_dictionary, con
  */
 CV_EXPORTS_W void detectMarkers(InputArray image, OutputArrayOfArrays corners, OutputArray ids,
                                 OutputArrayOfArrays rejectedImgPoints = noArray());
-};
 
 /**
  * @brief Refind not detected markers based on the already detected and the board layout
@@ -248,9 +247,8 @@ CV_EXPORTS_W void refineDetectedMarkers(InputArray image, const Ptr<Board> &boar
                                         InputOutputArrayOfArrays detectedCorners,
                                         InputOutputArray detectedIds, InputOutputArrayOfArrays rejectedCorners,
                                         InputArray cameraMatrix = noArray(), InputArray distCoeffs = noArray(),
-                                        float minRepDistance = 10.f, float errorCorrectionRate = 3.f,
-                                        bool checkAllOrders = true, OutputArray recoveredIdxs = noArray(),
-                                        const Ptr<DetectorParameters> &parameters = DetectorParameters::create());
+                                        OutputArray recoveredIdxs = noArray());
+};
 
 /**
  * @brief Draw detected markers in image

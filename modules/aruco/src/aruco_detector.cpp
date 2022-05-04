@@ -964,18 +964,14 @@ void ArucoDetector::detectMarkers(InputArray _image, OutputArrayOfArrays _corner
 
 /**
   */
-void refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
+void ArucoDetector::refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
                            InputOutputArrayOfArrays _detectedCorners, InputOutputArray _detectedIds,
                            InputOutputArrayOfArrays _rejectedCorners, InputArray _cameraMatrix,
-                           InputArray _distCoeffs, float minRepDistance, float errorCorrectionRate,
-                           bool checkAllOrders, OutputArray _recoveredIdxs,
-                           const Ptr<DetectorParameters> &_params) {
+                           InputArray _distCoeffs, OutputArray _recoveredIdxs) {
 
-    CV_Assert(minRepDistance > 0);
+    CV_Assert(refineParams->minRepDistance > 0);
 
     if(_detectedIds.total() == 0 || _rejectedCorners.total() == 0) return;
-
-    DetectorParameters &params = *_params;
 
     // get projections of missing markers in the board
     vector< vector< Point2f > > undetectedMarkersCorners;
@@ -997,7 +993,7 @@ void refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
     // maximum bits that can be corrected
     Dictionary &dictionary = *(_board->dictionary);
     int maxCorrectionRecalculated =
-        int(double(dictionary.maxCorrectionBits) * errorCorrectionRate);
+        int(double(dictionary.maxCorrectionBits) * refineParams->errorCorrectionRate);
 
     Mat grey;
     _convertToGrey(_image, grey);
@@ -1019,7 +1015,7 @@ void refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
 
         // best match at the moment
         int closestCandidateIdx = -1;
-        double closestCandidateDistance = minRepDistance * minRepDistance + 1;
+        double closestCandidateDistance = refineParams->minRepDistance * refineParams->minRepDistance + 1;
         Mat closestRotatedMarker;
 
         for(unsigned int j = 0; j < _rejectedCorners.total(); j++) {
@@ -1043,14 +1039,14 @@ void refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
                     validRot = c;
                     minDistance = currentMaxDistance;
                 }
-                if(!checkAllOrders) break;
+                if(!refineParams->checkAllOrders) break;
             }
 
             if(!valid) continue;
 
             // apply rotation
             Mat rotatedMarker;
-            if(checkAllOrders) {
+            if(refineParams->checkAllOrders) {
                 rotatedMarker = Mat(4, 1, CV_32FC2);
                 for(int c = 0; c < 4; c++)
                     rotatedMarker.ptr< Point2f >()[c] =
@@ -1061,24 +1057,24 @@ void refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
             // last filter, check if inner code is close enough to the assigned marker code
             int codeDistance = 0;
             // if errorCorrectionRate, dont check code
-            if(errorCorrectionRate >= 0) {
+            if(refineParams->errorCorrectionRate >= 0) {
 
                 // extract bits
                 Mat bits = _extractBits(
-                    grey, rotatedMarker, dictionary.markerSize, params.markerBorderBits,
-                    params.perspectiveRemovePixelPerCell,
-                    params.perspectiveRemoveIgnoredMarginPerCell, params.minOtsuStdDev);
+                    grey, rotatedMarker, dictionary.markerSize, params->markerBorderBits,
+                    params->perspectiveRemovePixelPerCell,
+                    params->perspectiveRemoveIgnoredMarginPerCell, params->minOtsuStdDev);
 
                 Mat onlyBits =
-                    bits.rowRange(params.markerBorderBits, bits.rows - params.markerBorderBits)
-                        .colRange(params.markerBorderBits, bits.rows - params.markerBorderBits);
+                    bits.rowRange(params->markerBorderBits, bits.rows - params->markerBorderBits)
+                        .colRange(params->markerBorderBits, bits.rows - params->markerBorderBits);
 
                 codeDistance =
                     dictionary.getDistanceToId(onlyBits, undetectedMarkersIds[i], false);
             }
 
             // if everythin is ok, assign values to current best match
-            if(errorCorrectionRate < 0 || codeDistance < maxCorrectionRecalculated) {
+            if(refineParams->errorCorrectionRate < 0 || codeDistance < maxCorrectionRecalculated) {
                 closestCandidateIdx = j;
                 closestCandidateDistance = minDistance;
                 closestRotatedMarker = rotatedMarker;
@@ -1089,15 +1085,15 @@ void refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
         if(closestCandidateIdx >= 0) {
 
             // subpixel refinement
-            if(_params->cornerRefinementMethod == CORNER_REFINE_SUBPIX) {
-                CV_Assert(params.cornerRefinementWinSize > 0 &&
-                          params.cornerRefinementMaxIterations > 0 &&
-                          params.cornerRefinementMinAccuracy > 0);
+            if(params->cornerRefinementMethod == CORNER_REFINE_SUBPIX) {
+                CV_Assert(params->cornerRefinementWinSize > 0 &&
+                          params->cornerRefinementMaxIterations > 0 &&
+                          params->cornerRefinementMinAccuracy > 0);
                 cornerSubPix(grey, closestRotatedMarker,
-                             Size(params.cornerRefinementWinSize, params.cornerRefinementWinSize),
+                             Size(params->cornerRefinementWinSize, params->cornerRefinementWinSize),
                              Size(-1, -1), TermCriteria(TermCriteria::MAX_ITER | TermCriteria::EPS,
-                                                        params.cornerRefinementMaxIterations,
-                                                        params.cornerRefinementMinAccuracy));
+                                                        params->cornerRefinementMaxIterations,
+                                                        params->cornerRefinementMinAccuracy));
             }
 
             // remove from rejected
