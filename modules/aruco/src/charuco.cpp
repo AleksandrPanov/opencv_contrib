@@ -395,9 +395,6 @@ void drawDetectedCornersCharuco(InputOutputArray _image, InputArray _charucoCorn
     }
 }
 
-
-/**
- */
 void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
                           InputArray _markerIds, float squareMarkerLengthRate,
                           OutputArrayOfArrays _diamondCorners, OutputArray _diamondIds,
@@ -468,10 +465,10 @@ void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
         // try to find the rest of markers in the diamond
         vector< int > acceptedIdxs;
         Ptr<Board> _b = _charucoDiamondLayout.staticCast<Board>();
-        aruco::refineDetectedMarkers(grey, _b,
-                                     currentMarker, currentMarkerId,
-                                     candidates, noArray(), noArray(), minRepDistance, -1, false,
-                                     acceptedIdxs);
+        Ptr<RefineParameters> refineParameters = makePtr<RefineParameters>(minRepDistance, -1, false);
+        ArucoDetector detector(dictionary, DetectorParameters::create(), refineParameters);
+        detector.refineDetectedMarkers(grey, _b, currentMarker, currentMarkerId, candidates, noArray(), noArray(),
+                                       acceptedIdxs);
 
         // if found, we have a diamond
         if(currentMarker.size() == 4) {
