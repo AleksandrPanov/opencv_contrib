@@ -85,5 +85,7 @@ class aruco_test(NewOpenCVTests):
 
         self.assertEqual(dist, 0)
 
+
+
 if __name__ == '__main__':
     NewOpenCVTests.bootstrap()

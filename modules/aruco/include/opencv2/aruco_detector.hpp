@@ -100,8 +100,48 @@ enum CornerRefineMethod{
  *   The parameter tau_i has a direct influence on the processing speed.
  */
 struct CV_EXPORTS_W DetectorParameters {
-    DetectorParameters();
-    CV_WRAP static Ptr<DetectorParameters> create();
+    DetectorParameters():
+        adaptiveThreshWinSizeMin(3),
+        adaptiveThreshWinSizeMax(23),
+        adaptiveThreshWinSizeStep(10),
+        adaptiveThreshConstant(7),
+        minMarkerPerimeterRate(0.03),
+        maxMarkerPerimeterRate(4.),
+        polygonalApproxAccuracyRate(0.03),
+        minCornerDistanceRate(0.05),
+        minDistanceToBorder(3),
+        minMarkerDistanceRate(0.05),
+        cornerRefinementMethod(CORNER_REFINE_NONE),
+        cornerRefinementWinSize(5),
+        cornerRefinementMaxIterations(30),
+        cornerRefinementMinAccuracy(0.1),
+        markerBorderBits(1),
+        perspectiveRemovePixelPerCell(4),
+        perspectiveRemoveIgnoredMarginPerCell(0.13),
+        maxErroneousBitsInBorderRate(0.35),
+        minOtsuStdDev(5.0),
+        errorCorrectionRate(0.6),
+        aprilTagQuadDecimate(0.0),
+        aprilTagQuadSigma(0.0),
+        aprilTagMinClusterPixels(5),
+        aprilTagMaxNmaxima(10),
+        aprilTagCriticalRad( (float)(10* CV_PI /180) ),
+        aprilTagMaxLineFitMse(10.0),
+        aprilTagMinWhiteBlackDiff(5),
+        aprilTagDeglitch(0),
+        detectInvertedMarker(false),
+        useAruco3Detection(false),
+        minSideLengthCanonicalImg(32),
+        minMarkerLengthRatioOriginalImg(0.0) {};
+
+/**
+  * @brief Create a new set of DetectorParameters with default values.
+  */
+    CV_WRAP static Ptr<DetectorParameters> create() {
+        Ptr<DetectorParameters> params = makePtr<DetectorParameters>();
+        return params;
+}
+
     CV_WRAP bool readDetectorParameters(const FileNode& fn);
 
     CV_PROP_RW int adaptiveThreshWinSizeMin;
@@ -165,89 +205,89 @@ struct CV_EXPORTS_W RefineParameters {
         return makePtr<RefineParameters>(_minRepDistance, _errorCorrectionRate, _checkAllOrders);
     }
 
+    /// minRepDistance minimum distance between the corners of the rejected candidate and the reprojected marker in
+    /// order to consider it as a correspondence.
     CV_PROP_RW float minRepDistance;
+    /// minRepDistance rate of allowed erroneous bits respect to the error correction
+    /// capability of the used dictionary. -1 ignores the error correction step.
     CV_PROP_RW float errorCorrectionRate;
+    /// checkAllOrders consider the four posible corner orders in the rejectedCorners array.
+    // * If it set to false, only the provided corner order is considered (default true).
     CV_PROP_RW bool checkAllOrders;
 };
 
 class CV_EXPORTS_W ArucoDetector
 {
 public:
-Ptr<Dictionary> dictionary;
-Ptr<DetectorParameters> params;
-Ptr<RefineParameters> refineParams;
+    /// dictionary indicates the type of markers that will be searched
+    CV_PROP_RW Ptr<Dictionary> dictionary;
+    /// parameters marker detection parameters
+    CV_PROP_RW Ptr<DetectorParameters> params;
+    /// refineParams marker refine parameters
+    CV_PROP_RW Ptr<RefineParameters> refineParams;
 
-ArucoDetector(const Ptr<Dictionary> &_dictionary = getPredefinedDictionary(DICT_4X4_50), const Ptr<DetectorParameters> &_params = DetectorParameters::create(),
-              const Ptr<RefineParameters> &_refineParams = RefineParameters::create()):
-              dictionary(_dictionary), params(_params), refineParams(_refineParams) {}
+    ArucoDetector(const Ptr<Dictionary> &_dictionary = getPredefinedDictionary(DICT_4X4_50), const Ptr<DetectorParameters> &_params = DetectorParameters::create(),
+                  const Ptr<RefineParameters> &_refineParams = RefineParameters::create()):
+                  dictionary(_dictionary), params(_params), refineParams(_refineParams) {}
 
-CV_WRAP static Ptr<ArucoDetector> create(const Ptr<Dictionary> &_dictionary, const Ptr<DetectorParameters> &_params) {
-    return makePtr<ArucoDetector>(_dictionary, _params);
-}
+    CV_WRAP static Ptr<ArucoDetector> create(const Ptr<Dictionary> &_dictionary, const Ptr<DetectorParameters> &_params) {
+        return makePtr<ArucoDetector>(_dictionary, _params);
+    }
 
-/**
- * @brief Basic marker detection
- *
- * @param image input image
- * @param dictionary indicates the type of markers that will be searched
- * @param corners vector of detected marker corners. For each marker, its four corners
- * are provided, (e.g std::vector<std::vector<cv::Point2f> > ). For N detected markers,
- * the dimensions of this array is Nx4. The order of the corners is clockwise.
- * @param ids vector of identifiers of the detected markers. The identifier is of type int
- * (e.g. std::vector<int>). For N detected markers, the size of ids is also N.
- * The identifiers have the same order than the markers in the imgPoints array.
- * @param parameters marker detection parameters
- * @param rejectedImgPoints contains the imgPoints of those squares whose inner code has not a
- * correct codification. Useful for debugging purposes.
- *
- * Performs marker detection in the input image. Only markers included in the specific dictionary
- * are searched. For each detected marker, it returns the 2D position of its corner in the image
- * and its corresponding identifier.
- * Note that this function does not perform pose estimation.
- * @note The function does not correct lens distortion or takes it into account. It's recommended to undistort
- * input image with corresponging camera model, if camera parameters are known
- * @sa undistort, estimatePoseSingleMarkers,  estimatePoseBoard
- *
- */
-CV_EXPORTS_W void detectMarkers(InputArray image, OutputArrayOfArrays corners, OutputArray ids,
-                                OutputArrayOfArrays rejectedImgPoints = noArray());
+    /**
+     * @brief Basic marker detection
+     *
+     * @param image input image
+     * @param corners vector of detected marker corners. For each marker, its four corners
+     * are provided, (e.g std::vector<std::vector<cv::Point2f> > ). For N detected markers,
+     * the dimensions of this array is Nx4. The order of the corners is clockwise.
+     * @param ids vector of identifiers of the detected markers. The identifier is of type int
+     * (e.g. std::vector<int>). For N detected markers, the size of ids is also N.
+     * The identifiers have the same order than the markers in the imgPoints array.
+     * @param rejectedImgPoints contains the imgPoints of those squares whose inner code has not a
+     * correct codification. Useful for debugging purposes.
+     *
+     * Performs marker detection in the input image. Only markers included in the specific dictionary
+     * are searched. For each detected marker, it returns the 2D position of its corner in the image
+     * and its corresponding identifier.
+     * Note that this function does not perform pose estimation.
+     * @note The function does not correct lens distortion or takes it into account. It's recommended to undistort
+     * input image with corresponging camera model, if camera parameters are known
+     * @sa undistort, estimatePoseSingleMarkers,  estimatePoseBoard
+     *
+     */
+    CV_EXPORTS_W void detectMarkers(InputArray image, OutputArrayOfArrays corners, OutputArray ids,
+                                    OutputArrayOfArrays rejectedImgPoints = noArray());
 
-/**
- * @brief Refind not detected markers based on the already detected and the board layout
- *
- * @param image input image
- * @param board layout of markers in the board.
- * @param detectedCorners vector of already detected marker corners.
- * @param detectedIds vector of already detected marker identifiers.
- * @param rejectedCorners vector of rejected candidates during the marker detection process.
- * @param cameraMatrix optional input 3x3 floating-point camera matrix
- * \f$A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$
- * @param distCoeffs optional vector of distortion coefficients
- * \f$(k_1, k_2, p_1, p_2[, k_3[, k_4, k_5, k_6],[s_1, s_2, s_3, s_4]])\f$ of 4, 5, 8 or 12 elements
- * @param minRepDistance minimum distance between the corners of the rejected candidate and the
- * reprojected marker in order to consider it as a correspondence.
- * @param errorCorrectionRate rate of allowed erroneous bits respect to the error correction
- * capability of the used dictionary. -1 ignores the error correction step.
- * @param checkAllOrders Consider the four posible corner orders in the rejectedCorners array.
- * If it set to false, only the provided corner order is considered (default true).
- * @param recoveredIdxs Optional array to returns the indexes of the recovered candidates in the
- * original rejectedCorners array.
- * @param parameters marker detection parameters
- *
- * This function tries to find markers that were not detected in the basic detecMarkers function.
- * First, based on the current detected marker and the board layout, the function interpolates
- * the position of the missing markers. Then it tries to find correspondence between the reprojected
- * markers and the rejected candidates based on the minRepDistance and errorCorrectionRate
- * parameters.
- * If camera parameters and distortion coefficients are provided, missing markers are reprojected
- * using projectPoint function. If not, missing marker projections are interpolated using global
- * homography, and all the marker corners in the board must have the same Z coordinate.
- */
-CV_EXPORTS_W void refineDetectedMarkers(InputArray image, const Ptr<Board> &board,
-                                        InputOutputArrayOfArrays detectedCorners,
-                                        InputOutputArray detectedIds, InputOutputArrayOfArrays rejectedCorners,
-                                        InputArray cameraMatrix = noArray(), InputArray distCoeffs = noArray(),
-                                        OutputArray recoveredIdxs = noArray());
+    /**
+     * @brief Refind not detected markers based on the already detected and the board layout
+     *
+     * @param image input image
+     * @param board layout of markers in the board.
+     * @param detectedCorners vector of already detected marker corners.
+     * @param detectedIds vector of already detected marker identifiers.
+     * @param rejectedCorners vector of rejected candidates during the marker detection process.
+     * @param cameraMatrix optional input 3x3 floating-point camera matrix
+     * \f$A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$
+     * @param distCoeffs optional vector of distortion coefficients
+     * \f$(k_1, k_2, p_1, p_2[, k_3[, k_4, k_5, k_6],[s_1, s_2, s_3, s_4]])\f$ of 4, 5, 8 or 12 elements
+     * @param recoveredIdxs Optional array to returns the indexes of the recovered candidates in the
+     * original rejectedCorners array.
+     *
+     * This function tries to find markers that were not detected in the basic detecMarkers function.
+     * First, based on the current detected marker and the board layout, the function interpolates
+     * the position of the missing markers. Then it tries to find correspondence between the reprojected
+     * markers and the rejected candidates based on the minRepDistance and errorCorrectionRate
+     * parameters.
+     * If camera parameters and distortion coefficients are provided, missing markers are reprojected
+     * using projectPoint function. If not, missing marker projections are interpolated using global
+     * homography, and all the marker corners in the board must have the same Z coordinate.
+     */
+    CV_EXPORTS_W void refineDetectedMarkers(InputArray image, const Ptr<Board> &board,
+                                            InputOutputArrayOfArrays detectedCorners,
+                                            InputOutputArray detectedIds, InputOutputArrayOfArrays rejectedCorners,
+                                            InputArray cameraMatrix = noArray(), InputArray distCoeffs = noArray(),
+                                            OutputArray recoveredIdxs = noArray());
 };
 
 /**
@@ -285,7 +325,6 @@ CV_EXPORTS_W void drawDetectedMarkers(InputOutputArray image, InputArrayOfArrays
  */
 CV_EXPORTS_W void drawMarker(const Ptr<Dictionary> &dictionary, int id, int sidePixels, OutputArray img,
                              int borderBits = 1);
-//};
 
 //! @}
 

@@ -15,50 +15,6 @@ namespace aruco {
 
 using namespace std;
 
-DetectorParameters::DetectorParameters()
-    : adaptiveThreshWinSizeMin(3),
-      adaptiveThreshWinSizeMax(23),
-      adaptiveThreshWinSizeStep(10),
-      adaptiveThreshConstant(7),
-      minMarkerPerimeterRate(0.03),
-      maxMarkerPerimeterRate(4.),
-      polygonalApproxAccuracyRate(0.03),
-      minCornerDistanceRate(0.05),
-      minDistanceToBorder(3),
-      minMarkerDistanceRate(0.05),
-      cornerRefinementMethod(CORNER_REFINE_NONE),
-      cornerRefinementWinSize(5),
-      cornerRefinementMaxIterations(30),
-      cornerRefinementMinAccuracy(0.1),
-      markerBorderBits(1),
-      perspectiveRemovePixelPerCell(4),
-      perspectiveRemoveIgnoredMarginPerCell(0.13),
-      maxErroneousBitsInBorderRate(0.35),
-      minOtsuStdDev(5.0),
-      errorCorrectionRate(0.6),
-      aprilTagQuadDecimate(0.0),
-      aprilTagQuadSigma(0.0),
-      aprilTagMinClusterPixels(5),
-      aprilTagMaxNmaxima(10),
-      aprilTagCriticalRad( (float)(10* CV_PI /180) ),
-      aprilTagMaxLineFitMse(10.0),
-      aprilTagMinWhiteBlackDiff(5),
-      aprilTagDeglitch(0),
-      detectInvertedMarker(false),
-      useAruco3Detection(false),
-      minSideLengthCanonicalImg(32),
-      minMarkerLengthRatioOriginalImg(0.0)
-{}
-
-
-/**
-  * @brief Create a new set of DetectorParameters with default values.
-  */
-Ptr<DetectorParameters> DetectorParameters::create() {
-    Ptr<DetectorParameters> params = makePtr<DetectorParameters>();
-    return params;
-}
-
 template<typename T>
 static inline bool readParameter(const FileNode& node, T& parameter)
 {
@@ -828,11 +784,8 @@ static inline void findCornerInPyrImage(const float scale_init, const int closes
     }
 }
 
-/**
-  */
 void ArucoDetector::detectMarkers(InputArray _image, OutputArrayOfArrays _corners, OutputArray _ids,
                                   OutputArrayOfArrays _rejectedImgPoints) {
-
     CV_Assert(!_image.empty());
     CV_Assert(params->markerBorderBits > 0);
     // check that the parameters are set correctly if Aruco3 is used
@@ -962,8 +915,6 @@ void ArucoDetector::detectMarkers(InputArray _image, OutputArrayOfArrays _corner
     Mat(ids).copyTo(_ids);
 }
 
-/**
-  */
 void ArucoDetector::refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
                            InputOutputArrayOfArrays _detectedCorners, InputOutputArray _detectedIds,
                            InputOutputArrayOfArrays _rejectedCorners, InputArray _cameraMatrix,
@@ -991,9 +942,8 @@ void ArucoDetector::refineDetectedMarkers(InputArray _image, const Ptr<Board> &_
     vector< bool > alreadyIdentified(_rejectedCorners.total(), false);
 
     // maximum bits that can be corrected
-    Dictionary &dictionary = *(_board->dictionary);
     int maxCorrectionRecalculated =
-        int(double(dictionary.maxCorrectionBits) * refineParams->errorCorrectionRate);
+        int(double(dictionary->maxCorrectionBits) * refineParams->errorCorrectionRate);
 
     Mat grey;
     _convertToGrey(_image, grey);
@@ -1061,7 +1011,7 @@ void ArucoDetector::refineDetectedMarkers(InputArray _image, const Ptr<Board> &_
 
                 // extract bits
                 Mat bits = _extractBits(
-                    grey, rotatedMarker, dictionary.markerSize, params->markerBorderBits,
+                    grey, rotatedMarker, dictionary->markerSize, params->markerBorderBits,
                     params->perspectiveRemovePixelPerCell,
                     params->perspectiveRemoveIgnoredMarginPerCell, params->minOtsuStdDev);
 
@@ -1070,7 +1020,7 @@ void ArucoDetector::refineDetectedMarkers(InputArray _image, const Ptr<Board> &_
                         .colRange(params->markerBorderBits, bits.rows - params->markerBorderBits);
 
                 codeDistance =
-                    dictionary.getDistanceToId(onlyBits, undetectedMarkersIds[i], false);
+                    dictionary->getDistanceToId(onlyBits, undetectedMarkersIds[i], false);
             }
 
             // if everythin is ok, assign values to current best match
@@ -1129,7 +1079,6 @@ void ArucoDetector::refineDetectedMarkers(InputArray _image, const Ptr<Board> &_
     }
 }
 
-
 /**
  */
 void drawDetectedMarkers(InputOutputArray _image, InputArrayOfArrays _corners,
@@ -1175,11 +1124,9 @@ void drawDetectedMarkers(InputOutputArray _image, InputArrayOfArrays _corners,
     }
 }
 
-
 void drawMarker(const Ptr<Dictionary> &dictionary, int id, int sidePixels, OutputArray _img, int borderBits) {
     dictionary->drawMarker(id, sidePixels, _img, borderBits);
 }
 
 }
 }
-
