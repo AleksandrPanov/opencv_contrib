@@ -3,7 +3,6 @@
 // of this distribution and at http://opencv.org/license.html
 
 #include <opencv2/aruco/aruco_calib_pose.hpp>
-#include <opencv2/aruco/board.hpp>
 #include <opencv2/calib3d.hpp>
 
 namespace cv {
