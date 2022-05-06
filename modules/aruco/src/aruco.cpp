@@ -153,7 +153,7 @@ static void _copyVector2Output(vector< vector< Point2f > > &vec, OutputArrayOfAr
 static vector<vector<Point2f>> getVectors(InputArrayOfArrays& in)
 {
     vector<vector<Point2f>> v;
-    if (in.isMatVector() || in.kind())
+    if (in.isMatVector() || in.kind() == _InputArray::STD_VECTOR_VECTOR)
     {
         for (size_t i = 0; i < in.total(); i++)
         {
