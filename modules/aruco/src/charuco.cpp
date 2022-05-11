@@ -341,8 +341,6 @@ static int _interpolateCornersCharucoLocalHom(InputArrayOfArrays _markerCorners,
 }
 
 
-/**
-  */
 int interpolateCornersCharuco(InputArrayOfArrays _markerCorners, InputArray _markerIds,
                               InputArray _image, const Ptr<CharucoBoard> &_board,
                               OutputArray _charucoCorners, OutputArray _charucoIds,
@@ -366,9 +364,6 @@ int interpolateCornersCharuco(InputArrayOfArrays _markerCorners, InputArray _mar
 }
 
 
-
-/**
-  */
 void drawDetectedCornersCharuco(InputOutputArray _image, InputArray _charucoCorners,
                                 InputArray _charucoIds, Scalar cornerColor) {
 
@@ -394,6 +389,7 @@ void drawDetectedCornersCharuco(InputOutputArray _image, InputArray _charucoCorn
         }
     }
 }
+
 
 void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
                           InputArray _markerIds, float squareMarkerLengthRate,
@@ -523,10 +519,6 @@ void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
 }
 
 
-
-
-/**
-  */
 void drawCharucoDiamond(const Ptr<Dictionary> &dictionary, Vec4i ids, int squareLength, int markerLength,
                         OutputArray _img, int marginSize, int borderBits) {
     CV_Assert(squareLength > 0 && markerLength > 0 && squareLength > markerLength);
@@ -545,8 +537,6 @@ void drawCharucoDiamond(const Ptr<Dictionary> &dictionary, Vec4i ids, int square
 }
 
 
-/**
- */
 void drawDetectedDiamonds(InputOutputArray _image, InputArrayOfArrays _corners,
                           InputArray _ids, Scalar borderColor) {
     CV_Assert(_image.getMat().total() != 0 &&

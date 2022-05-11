@@ -50,8 +50,6 @@ namespace aruco {
 using namespace std;
 
 
-/**
-  */
 Dictionary::Dictionary(const Ptr<Dictionary> &_dictionary) {
     markerSize = _dictionary->markerSize;
     maxCorrectionBits = _dictionary->maxCorrectionBits;
@@ -59,8 +57,6 @@ Dictionary::Dictionary(const Ptr<Dictionary> &_dictionary) {
 }
 
 
-/**
-  */
 Dictionary::Dictionary(const Mat &_bytesList, int _markerSize, int _maxcorr) {
     markerSize = _markerSize;
     maxCorrectionBits = _maxcorr;
@@ -68,21 +64,18 @@ Dictionary::Dictionary(const Mat &_bytesList, int _markerSize, int _maxcorr) {
 }
 
 
-/**
- */
 Ptr<Dictionary> Dictionary::create(int nMarkers, int markerSize, int randomSeed) {
     const Ptr<Dictionary> baseDictionary = makePtr<Dictionary>();
     return create(nMarkers, markerSize, baseDictionary, randomSeed);
 }
 
 
-/**
- */
 Ptr<Dictionary> Dictionary::create(int nMarkers, int markerSize,
                                    const Ptr<Dictionary> &baseDictionary, int randomSeed) {
 
     return generateCustomDictionary(nMarkers, markerSize, baseDictionary, randomSeed);
 }
+
 
 template<typename T>
 static inline bool readParameter(const FileNode& node, T& parameter)
@@ -93,6 +86,7 @@ static inline bool readParameter(const FileNode& node, T& parameter)
     }
     return false;
 }
+
 
 bool Dictionary::readDictionary(const cv::FileNode& fn)
 {
@@ -116,6 +110,7 @@ bool Dictionary::readDictionary(const cv::FileNode& fn)
     return true;
 }
 
+
 void Dictionary::writeDictionary(Ptr<FileStorage>& fs) {
     *fs << "nmarkers" << bytesList.rows;
     *fs << "markersize" << markerSize;
@@ -133,15 +128,12 @@ void Dictionary::writeDictionary(Ptr<FileStorage>& fs) {
     }
 }
 
-/**
- */
+
 Ptr<Dictionary> Dictionary::get(int dict) {
     return getPredefinedDictionary(dict);
 }
 
 
-/**
- */
 bool Dictionary::identify(const Mat &onlyBits, int &idx, int &rotation,
                           double maxCorrectionRate) const {
 
@@ -182,8 +174,6 @@ bool Dictionary::identify(const Mat &onlyBits, int &idx, int &rotation,
 }
 
 
-/**
-  */
 int Dictionary::getDistanceToId(InputArray bits, int id, bool allRotations) const {
 
     CV_Assert(id >= 0 && id < bytesList.rows);
@@ -207,10 +197,6 @@ int Dictionary::getDistanceToId(InputArray bits, int id, bool allRotations) cons
 }
 
 
-
-/**
- * @brief Draw a canonical marker image
- */
 void Dictionary::drawMarker(int id, int sidePixels, OutputArray _img, int borderBits) const {
 
     CV_Assert(sidePixels >= (markerSize + 2*borderBits));
@@ -235,10 +221,6 @@ void Dictionary::drawMarker(int id, int sidePixels, OutputArray _img, int border
 
 
 
-
-/**
-  * @brief Transform matrix of bits to list of bytes in the 4 rotations
-  */
 Mat Dictionary::getByteListFromBits(const Mat &bits) {
     // integer ceil
     int nbytes = (bits.cols * bits.rows + 8 - 1) / 8;
@@ -277,10 +259,6 @@ Mat Dictionary::getByteListFromBits(const Mat &bits) {
 }
 
 
-
-/**
-  * @brief Transform list of bytes to matrix of bits
-  */
 Mat Dictionary::getBitsFromByteList(const Mat &byteList, int markerSize) {
     CV_Assert(byteList.total() > 0 &&
               byteList.total() >= (unsigned int)markerSize * markerSize / 8 &&
@@ -313,7 +291,6 @@ Mat Dictionary::getBitsFromByteList(const Mat &byteList, int markerSize) {
     }
     return bits;
 }
-
 
 
 Ptr<Dictionary> getPredefinedDictionary(PREDEFINED_DICTIONARY_NAME name)

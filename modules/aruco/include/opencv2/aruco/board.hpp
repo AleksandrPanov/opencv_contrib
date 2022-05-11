@@ -70,13 +70,8 @@ class CV_EXPORTS_W Board {
 };
 
 /**
- * @brief Implementation of drawPlanarBoard that accepts a raw Board pointer.
- */
-void _drawPlanarBoardImpl(Board *board, Size outSize, OutputArray img, int marginSize = 0, int borderBits = 1);
-
-/**
  * @brief Draw a planar board
- * @sa _drawPlanarBoardImpl
+ * @sa drawPlanarBoard
  *
  * @param board layout of the board that will be drawn. The board should be planar,
  * z coordinate is ignored
@@ -217,14 +212,14 @@ class CV_EXPORTS_W CharucoBoard : public Board {
 /**
  * @brief test whether the ChArUco markers are collinear
  *
- * @param _board layout of ChArUco board.
- * @param _charucoIds list of identifiers for each corner in charucoCorners per frame.
+ * @param board layout of ChArUco board.
+ * @param charucoIds list of identifiers for each corner in charucoCorners per frame.
  * @return bool value, 1 (true) if detected corners form a line, 0 (false) if they do not.
       solvePnP, calibration functions will fail if the corners are collinear (true).
  *
  * The number of ids in charucoIDs should be <= the number of chessboard corners in the board.  This functions checks whether the charuco corners are on a straight line (returns true, if so), or not (false).  Axis parallel, as well as diagonal and other straight lines detected.  Degenerate cases: for number of charucoIDs <= 2, the function returns true.
  */
-CV_EXPORTS_W bool testCharucoCornersCollinear(const Ptr<CharucoBoard> &_board, InputArray _charucoIds);
+CV_EXPORTS_W bool testCharucoCornersCollinear(const Ptr<CharucoBoard> &board, InputArray charucoIds);
 
 //! @}
 

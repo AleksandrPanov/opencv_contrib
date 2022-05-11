@@ -42,48 +42,27 @@ the use of this software, even if advised of the possibility of such damage.
 #include "opencv2/aruco_detector.hpp"
 #include "opencv2/aruco/aruco_calib_pose.hpp"
 
-/**
- * @defgroup aruco ArUco Marker Detection
- * This module is dedicated to square fiducial markers (also known as Augmented Reality Markers)
- * These markers are useful for easy, fast and robust camera pose estimation.ç
- *
- * The main functionalities are:
- * - Detection of markers in an image
- * - Pose estimation from a single marker or from a board/set of markers
- * - Detection of ChArUco board for high subpixel accuracy
- * - Camera calibration from both, ArUco boards and ChArUco boards.
- * - Detection of ChArUco diamond markers
- * The samples directory includes easy examples of how to use the module.
- *
- * The implementation is based on the ArUco Library by R. Muñoz-Salinas and S. Garrido-Jurado @cite Aruco2014.
- *
- * Markers can also be detected based on the AprilTag 2 @cite wang2016iros fiducial detection method.
- *
- * @sa S. Garrido-Jurado, R. Muñoz-Salinas, F. J. Madrid-Cuevas, and M. J. Marín-Jiménez. 2014.
- * "Automatic generation and detection of highly reliable fiducial markers under occlusion".
- * Pattern Recogn. 47, 6 (June 2014), 2280-2292. DOI=10.1016/j.patcog.2014.01.005
- *
- * @sa http://www.uco.es/investiga/grupos/ava/node/26
- *
- * This module has been originally developed by Sergio Garrido-Jurado as a project
- * for Google Summer of Code 2015 (GSoC 15).
- *
- *
-*/
-
 namespace cv {
 namespace aruco {
 
+
+/**
+@deprecated Use class ArucoDetector
+*/
 CV_EXPORTS_W void detectMarkers(InputArray image, const Ptr<Dictionary> &dictionary, OutputArrayOfArrays corners,
                                 OutputArray ids, const Ptr<DetectorParameters> &parameters = DetectorParameters::create(),
                                 OutputArrayOfArrays rejectedImgPoints = noArray());
 
-CV_EXPORTS_W void refineDetectedMarkers(
-    InputArray image,const  Ptr<Board> &board, InputOutputArrayOfArrays detectedCorners,
-    InputOutputArray detectedIds, InputOutputArrayOfArrays rejectedCorners,
-    InputArray cameraMatrix = noArray(), InputArray distCoeffs = noArray(),
-    float minRepDistance = 10.f, float errorCorrectionRate = 3.f, bool checkAllOrders = true,
-    OutputArray recoveredIdxs = noArray(), const Ptr<DetectorParameters> &parameters = DetectorParameters::create());
+/**
+@deprecated Use class ArucoDetector
+*/
+CV_EXPORTS_W void refineDetectedMarkers(InputArray image,const  Ptr<Board> &board,
+                                        InputOutputArrayOfArrays detectedCorners,
+                                        InputOutputArray detectedIds, InputOutputArrayOfArrays rejectedCorners,
+                                        InputArray cameraMatrix = noArray(), InputArray distCoeffs = noArray(),
+                                        float minRepDistance = 10.f, float errorCorrectionRate = 3.f,
+                                        bool checkAllOrders = true, OutputArray recoveredIdxs = noArray(),
+                                        const Ptr<DetectorParameters> &parameters = DetectorParameters::create());
 
 }
 }

@@ -72,22 +72,18 @@ class CV_EXPORTS_W Dictionary {
 
 
     /**
-    Dictionary(const Dictionary &_dictionary);
+    * Dictionary(const Dictionary &_dictionary);
     */
+    Dictionary(const Ptr<Dictionary> &dictionary);
 
 
-    /**
-      */
-    Dictionary(const Ptr<Dictionary> &_dictionary);
-
-
-    /**
+    /** @brief returns generateCustomDictionary(nMarkers, markerSize, randomSeed)
      * @see generateCustomDictionary
      */
     CV_WRAP_AS(create) static Ptr<Dictionary> create(int nMarkers, int markerSize, int randomSeed=0);
 
 
-    /**
+    /** @brief returns generateCustomDictionary(nMarkers, markerSize, baseDictionary, randomSeed)
      * @see generateCustomDictionary
      */
     CV_WRAP_AS(create_from) static Ptr<Dictionary> create(int nMarkers, int markerSize,
@@ -108,6 +104,7 @@ class CV_EXPORTS_W Dictionary {
      * @brief Write a dictionary to FileStorage. Format is the same as in readDictionary().
      */
     CV_WRAP void writeDictionary(Ptr<FileStorage>& fs);
+
     /**
      * @see getPredefinedDictionary
      */

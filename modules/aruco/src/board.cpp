@@ -10,7 +10,10 @@ namespace cv {
 namespace aruco {
 using namespace std;
 
-void _drawPlanarBoardImpl(Board *_board, Size outSize, OutputArray _img, int marginSize, int borderBits) {
+/**
+ * @brief Implementation of drawPlanarBoard that accepts a raw Board pointer.
+ */
+static void _drawPlanarBoardImpl(Board *_board, Size outSize, OutputArray _img, int marginSize, int borderBits) {
     CV_Assert(!outSize.empty());
     CV_Assert(marginSize >= 0);
 
@@ -213,9 +216,7 @@ void CharucoBoard::draw(Size outSize, OutputArray _img, int marginSize, int bord
 
     // draw markers
     Mat markersImg;
-    aruco::_drawPlanarBoardImpl(this, chessboardZoneImg.size(), markersImg,
-                                diffSquareMarkerLengthPixels, borderBits);
-
+    _drawPlanarBoardImpl(this, chessboardZoneImg.size(), markersImg, diffSquareMarkerLengthPixels, borderBits);
     markersImg.copyTo(chessboardZoneImg);
 
     // now draw black squares

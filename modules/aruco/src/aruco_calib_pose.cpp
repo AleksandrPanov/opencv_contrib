@@ -9,108 +9,6 @@ namespace cv {
 namespace aruco {
 using namespace std;
 
-/**
-  * Project board markers that are not included in the list of detected markers
-  */
-void _projectUndetectedMarkers(const Ptr<Board> &_board, InputOutputArrayOfArrays _detectedCorners,
-                               InputOutputArray _detectedIds, InputArray _cameraMatrix, InputArray _distCoeffs,
-                               vector<vector<Point2f> >& _undetectedMarkersProjectedCorners,
-                               OutputArray _undetectedMarkersIds) {
-    // first estimate board pose with the current avaible markers
-    Mat rvec, tvec;
-    int boardDetectedMarkers = aruco::estimatePoseBoard(_detectedCorners, _detectedIds, _board,
-                                                        _cameraMatrix, _distCoeffs, rvec, tvec);
-
-    // at least one marker from board so rvec and tvec are valid
-    if(boardDetectedMarkers == 0) return;
-
-    // search undetected markers and project them using the previous pose
-    vector<vector<Point2f> > undetectedCorners;
-    vector<int> undetectedIds;
-    for(unsigned int i = 0; i < _board->ids.size(); i++) {
-        int foundIdx = -1;
-        for(unsigned int j = 0; j < _detectedIds.total(); j++) {
-            if(_board->ids[i] == _detectedIds.getMat().ptr< int >()[j]) {
-                foundIdx = j;
-                break;
-            }
-        }
-
-        // not detected
-        if(foundIdx == -1) {
-            undetectedCorners.push_back(vector<Point2f >());
-            undetectedIds.push_back(_board->ids[i]);
-            projectPoints(_board->objPoints[i], rvec, tvec, _cameraMatrix, _distCoeffs,
-                          undetectedCorners.back());
-        }
-    }
-
-    // parse output
-    Mat(undetectedIds).copyTo(_undetectedMarkersIds);
-    _undetectedMarkersProjectedCorners = undetectedCorners;
-}
-
-/**
-  * Interpolate board markers that are not included in the list of detected markers using
-  * global homography
-  */
-void _projectUndetectedMarkers(const Ptr<Board> &_board, InputOutputArrayOfArrays _detectedCorners,
-                               InputOutputArray _detectedIds,
-                               vector<vector<Point2f > >& _undetectedMarkersProjectedCorners,
-                               OutputArray _undetectedMarkersIds) {
-    // check board points are in the same plane, if not, global homography cannot be applied
-    CV_Assert(_board->objPoints.size() > 0);
-    CV_Assert(_board->objPoints[0].size() > 0);
-    float boardZ = _board->objPoints[0][0].z;
-    for(unsigned int i = 0; i < _board->objPoints.size(); i++) {
-        for(unsigned int j = 0; j < _board->objPoints[i].size(); j++)
-            CV_Assert(boardZ == _board->objPoints[i][j].z);
-    }
-
-    vector<Point2f> detectedMarkersObj2DAll; // Object coordinates (without Z) of all the detected
-                                               // marker corners in a single vector
-    vector<Point2f> imageCornersAll; // Image corners of all detected markers in a single vector
-    vector<vector<Point2f> > undetectedMarkersObj2D; // Object coordinates (without Z) of all
-                                                        // missing markers in different vectors
-    vector<int> undetectedMarkersIds; // ids of missing markers
-    // find markers included in board, and missing markers from board. Fill the previous vectors
-    for(unsigned int j = 0; j < _board->ids.size(); j++) {
-        bool found = false;
-        for(unsigned int i = 0; i < _detectedIds.total(); i++) {
-            if(_detectedIds.getMat().ptr< int >()[i] == _board->ids[j]) {
-                for(int c = 0; c < 4; c++) {
-                    imageCornersAll.push_back(_detectedCorners.getMat(i).ptr< Point2f >()[c]);
-                    detectedMarkersObj2DAll.push_back(
-                        Point2f(_board->objPoints[j][c].x, _board->objPoints[j][c].y));
-                }
-                found = true;
-                break;
-            }
-        }
-        if(!found) {
-            undetectedMarkersObj2D.push_back(vector<Point2f >());
-            for(int c = 0; c < 4; c++) {
-                undetectedMarkersObj2D.back().push_back(
-                    Point2f(_board->objPoints[j][c].x, _board->objPoints[j][c].y));
-            }
-            undetectedMarkersIds.push_back(_board->ids[j]);
-        }
-    }
-    if(imageCornersAll.size() == 0) return;
-
-    // get homography from detected markers
-    Mat transformation = findHomography(detectedMarkersObj2DAll, imageCornersAll);
-
-    _undetectedMarkersProjectedCorners.resize(undetectedMarkersIds.size());
-
-    // for each undetected marker, apply transformation
-    for(unsigned int i = 0; i < undetectedMarkersObj2D.size(); i++) {
-        perspectiveTransform(undetectedMarkersObj2D[i], _undetectedMarkersProjectedCorners[i], transformation);
-    }
-
-    Mat(undetectedMarkersIds).copyTo(_undetectedMarkersIds);
-}
-
 void getBoardObjectAndImagePoints(const Ptr<Board> &board, InputArrayOfArrays detectedCorners, InputArray detectedIds,
                                   OutputArray objPoints, OutputArray imgPoints) {
     CV_Assert(board->ids.size() == board->objPoints.size());
@@ -269,7 +167,6 @@ double calibrateCameraAruco(InputArrayOfArrays _corners, InputArray _ids, InputA
                             OutputArray _stdDeviationsExtrinsics,
                             OutputArray _perViewErrors,
                             int flags, TermCriteria criteria) {
-
     // for each frame, get properly processed imagePoints and objectPoints for the calibrateCamera
     // function
     vector<Mat> processedObjectPoints, processedImagePoints;
@@ -297,7 +194,6 @@ double calibrateCameraAruco(InputArrayOfArrays _corners, InputArray _ids, InputA
             processedObjectPoints.push_back(currentObjPoints);
         }
     }
-
     return calibrateCamera(processedObjectPoints, processedImagePoints, imageSize, _cameraMatrix, _distCoeffs, _rvecs,
                            _tvecs, _stdDeviationsIntrinsics, _stdDeviationsExtrinsics, _perViewErrors, flags, criteria);
 }
@@ -333,7 +229,6 @@ double calibrateCameraCharuco(InputArrayOfArrays _charucoCorners, InputArrayOfAr
             allObjPoints[i].push_back(_board->chessboardCorners[pointId]);
         }
     }
-
     return calibrateCamera(allObjPoints, _charucoCorners, imageSize, _cameraMatrix, _distCoeffs, _rvecs, _tvecs,
                            _stdDeviationsIntrinsics, _stdDeviationsExtrinsics, _perViewErrors, flags, criteria);
 }

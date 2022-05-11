@@ -4,7 +4,6 @@
 #ifndef __OPENCV_ARUCO_CALIB_POSE_HPP__
 #define __OPENCV_ARUCO_CALIB_POSE_HPP__
 #include <opencv2/aruco/board.hpp>
-#include <opencv2/aruco/dictionary.hpp>
 
 namespace cv {
 namespace aruco {
@@ -220,24 +219,6 @@ CV_EXPORTS_W double calibrateCameraCharuco(InputArrayOfArrays charucoCorners, In
                                            TermCriteria criteria=TermCriteria(TermCriteria::COUNT +
                                                                  TermCriteria::EPS, 30, DBL_EPSILON));
 //! @}
-
-/**
-  * Project board markers that are not included in the list of detected markers
-  */
-void _projectUndetectedMarkers(const Ptr<Board> &_board, InputOutputArrayOfArrays _detectedCorners,
-                               InputOutputArray _detectedIds, InputArray _cameraMatrix,
-                               InputArray _distCoeffs,
-                               std::vector<std::vector<Point2f> >& _undetectedMarkersProjectedCorners,
-                               OutputArray _undetectedMarkersIds);
-
-/**
-  * Interpolate board markers that are not included in the list of detected markers using
-  * global homography
-  */
-void _projectUndetectedMarkers(const Ptr<Board> &_board, InputOutputArrayOfArrays _detectedCorners,
-                               InputOutputArray _detectedIds,
-                               std::vector<std::vector<Point2f> >& _undetectedMarkersProjectedCorners,
-                               OutputArray _undetectedMarkersIds);
 
 }
 }

@@ -1574,10 +1574,12 @@ void _apriltag(Mat im_orig, const Ptr<DetectorParameters> & _params, std::vector
     /// Step 1. Detect quads according to requested image decimation
     /// and blurring parameters.
     Mat quad_im;
-    im_orig.copyTo(quad_im);
 
     if (_params->aprilTagQuadDecimate > 1){
         resize(im_orig, quad_im, Size(), 1/_params->aprilTagQuadDecimate, 1/_params->aprilTagQuadDecimate, INTER_AREA);
+    }
+    else {
+        im_orig.copyTo(quad_im);
     }
 
     // Apply a Blur
