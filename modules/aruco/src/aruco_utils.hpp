@@ -20,6 +20,25 @@ void _copyVector2Output(std::vector<std::vector<Point2f> > &vec, OutputArrayOfAr
   */
 void _convertToGrey(InputArray _in, OutputArray _out);
 
+template<typename T>
+inline bool readParameter(const std::string& name, T& parameter, const FileNode& node)
+{
+    if (!node.empty() && !node[name].empty()) {
+        node[name] >> parameter;
+        return true;
+    }
+    return false;
+}
+
+template<typename T>
+inline bool readWriteParameter(const std::string& name, T& parameter, const Ptr<FileNode> readNode = nullptr,
+                               const Ptr<FileStorage> writeStorage = nullptr) {
+    if (!readNode.empty())
+        return readParameter(name, parameter, *readNode);
+    *writeStorage << name << parameter;
+    return true;
+}
+
 }
 }
 #endif
