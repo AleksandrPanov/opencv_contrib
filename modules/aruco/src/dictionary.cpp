@@ -36,13 +36,14 @@ or tort (including negligence or otherwise) arising in any way out of
 the use of this software, even if advised of the possibility of such damage.
 */
 
-#include "precomp.hpp"
-#include "opencv2/aruco/dictionary.hpp"
-#include <opencv2/core.hpp>
 #include <opencv2/imgproc.hpp>
+#include "opencv2/core/hal/hal.hpp"
+
+#include "precomp.hpp"
+#include "aruco_utils.hpp"
 #include "predefined_dictionaries.hpp"
 #include "apriltag/predefined_dictionaries_apriltag.hpp"
-#include "opencv2/core/hal/hal.hpp"
+#include <opencv2/aruco/dictionary.hpp>
 
 namespace cv {
 namespace aruco {
@@ -72,40 +73,27 @@ Ptr<Dictionary> Dictionary::create(int nMarkers, int markerSize, int randomSeed)
 
 Ptr<Dictionary> Dictionary::create(int nMarkers, int markerSize,
                                    const Ptr<Dictionary> &baseDictionary, int randomSeed) {
-
     return generateCustomDictionary(nMarkers, markerSize, baseDictionary, randomSeed);
 }
 
 
-template<typename T>
-static inline bool readParameter(const FileNode& node, T& parameter)
-{
-    if (!node.empty()) {
-        node >> parameter;
-        return true;
-    }
-    return false;
-}
-
-
-bool Dictionary::readDictionary(const cv::FileNode& fn)
-{
+bool Dictionary::readDictionary(const cv::FileNode& fn) {
     int nMarkers = 0, _markerSize = 0;
-    if (fn.empty() || !readParameter(fn["nmarkers"], nMarkers) || !readParameter(fn["markersize"], _markerSize))
+    if (fn.empty() || !readParameter("nmarkers", nMarkers, fn) || !readParameter("markersize", _markerSize, fn))
         return false;
     Mat bytes(0, 0, CV_8UC1), marker(_markerSize, _markerSize, CV_8UC1);
     std::string markerString;
     for (int i = 0; i < nMarkers; i++) {
         std::ostringstream ostr;
         ostr << i;
-        if (!readParameter(fn["marker_" + ostr.str()], markerString))
+        if (!readParameter("marker_" + ostr.str(), markerString, fn))
             return false;
         for (int j = 0; j < (int) markerString.size(); j++)
             marker.at<unsigned char>(j) = (markerString[j] == '0') ? 0 : 1;
         bytes.push_back(Dictionary::getByteListFromBits(marker));
     }
     int _maxCorrectionBits = 0;
-    readParameter(fn["maxCorrectionBits"], _maxCorrectionBits);
+    readParameter("maxCorrectionBits", _maxCorrectionBits, fn);
     *this = Dictionary(bytes, _markerSize, _maxCorrectionBits);
     return true;
 }
@@ -134,9 +122,7 @@ Ptr<Dictionary> Dictionary::get(int dict) {
 }
 
 
-bool Dictionary::identify(const Mat &onlyBits, int &idx, int &rotation,
-                          double maxCorrectionRate) const {
-
+bool Dictionary::identify(const Mat &onlyBits, int &idx, int &rotation, double maxCorrectionRate) const {
     CV_Assert(onlyBits.rows == markerSize && onlyBits.cols == markerSize);
 
     int maxCorrectionRecalculed = int(double(maxCorrectionBits) * maxCorrectionRate);
@@ -198,7 +184,6 @@ int Dictionary::getDistanceToId(InputArray bits, int id, bool allRotations) cons
 
 
 void Dictionary::drawMarker(int id, int sidePixels, OutputArray _img, int borderBits) const {
-
     CV_Assert(sidePixels >= (markerSize + 2*borderBits));
     CV_Assert(id < bytesList.rows);
     CV_Assert(borderBits > 0);
@@ -218,7 +203,6 @@ void Dictionary::drawMarker(int id, int sidePixels, OutputArray _img, int border
     // resize tiny marker to output size
     cv::resize(tinyMarker, _img.getMat(), _img.getMat().size(), 0, 0, INTER_NEAREST);
 }
-
 
 
 Mat Dictionary::getByteListFromBits(const Mat &bits) {
@@ -293,8 +277,7 @@ Mat Dictionary::getBitsFromByteList(const Mat &byteList, int markerSize) {
 }
 
 
-Ptr<Dictionary> getPredefinedDictionary(PREDEFINED_DICTIONARY_NAME name)
-{
+Ptr<Dictionary> getPredefinedDictionary(PREDEFINED_DICTIONARY_NAME name) {
     // DictionaryData constructors calls
     //    moved out of globals so construted on first use, which allows lazy-loading of opencv dll
     static const Dictionary DICT_ARUCO_DATA = Dictionary(Mat(1024, (5 * 5 + 7) / 8, CV_8UC4, (uchar*)DICT_ARUCO_BYTES), 5, 0);
@@ -415,8 +398,7 @@ static int _getSelfDistance(const Mat &marker) {
     return minHamming;
 }
 
-/**
- */
+
 Ptr<Dictionary> generateCustomDictionary(int nMarkers, int markerSize,
                                          const Ptr<Dictionary> &baseDictionary, int randomSeed) {
     RNG rng((uint64)(randomSeed));
@@ -507,8 +489,6 @@ Ptr<Dictionary> generateCustomDictionary(int nMarkers, int markerSize,
 }
 
 
-/**
- */
 Ptr<Dictionary> generateCustomDictionary(int nMarkers, int markerSize, int randomSeed) {
     Ptr<Dictionary> baseDictionary = makePtr<Dictionary>();
     return generateCustomDictionary(nMarkers, markerSize, baseDictionary, randomSeed);

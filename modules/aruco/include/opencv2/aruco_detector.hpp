@@ -93,9 +93,14 @@ struct CV_EXPORTS_W DetectorParameters {
     }
 
     /**
-      * @brief Read a new set of DetectorParameters from FileStorage.
+      * @brief Read a new set of DetectorParameters from FileNode (use FileStorage.root()).
       */
     CV_WRAP bool readDetectorParameters(const FileNode& fn);
+
+    /**
+      * @brief Write a set of DetectorParameters to FileStorage
+      */
+    CV_WRAP bool writeDetectorParameters(const Ptr<FileStorage>& fs);
 
     /// minimum window size for adaptive thresholding before finding contours (default 3).
     CV_PROP_RW int adaptiveThreshWinSizeMin;
@@ -214,6 +219,9 @@ struct CV_EXPORTS_W DetectorParameters {
 
     /// range [0,1], eq (2) from paper. The parameter tau_i has a direct influence on the processing speed.
     CV_PROP_RW float minMarkerLengthRatioOriginalImg;
+
+private:
+    bool readWrite(const Ptr<FileNode>& readNode = nullptr, const Ptr<FileStorage>& writeStorage = nullptr);
 };
 
 struct CV_EXPORTS_W RefineParameters {
@@ -226,13 +234,21 @@ struct CV_EXPORTS_W RefineParameters {
     RefineParameters(float _minRepDistance, float _errorCorrectionRate, bool _checkAllOrders):
     minRepDistance(_minRepDistance), errorCorrectionRate(_errorCorrectionRate), checkAllOrders(_checkAllOrders) {}
 
-    CV_WRAP static Ptr<RefineParameters> create() {
-        return makePtr<RefineParameters>();
-    }
-
-    CV_WRAP static Ptr<RefineParameters> create(float _minRepDistance, float _errorCorrectionRate, bool _checkAllOrders) {
+    CV_WRAP static Ptr<RefineParameters> create(float _minRepDistance = 10.f, float _errorCorrectionRate = 3.f,
+                                                bool _checkAllOrders = true) {
         return makePtr<RefineParameters>(_minRepDistance, _errorCorrectionRate, _checkAllOrders);
     }
+
+
+    /**
+      * @brief Read a new set of RefineParameters from FileNode (use FileStorage.root()).
+      */
+    CV_WRAP bool readRefineParameters(const FileNode& fn);
+
+    /**
+      * @brief Write a set of RefineParameters to FileStorage
+      */
+    CV_WRAP bool writeRefineParameters(const Ptr<FileStorage>& fs);
 
     /// minRepDistance minimum distance between the corners of the rejected candidate and the reprojected marker in
     /// order to consider it as a correspondence.
@@ -243,9 +259,11 @@ struct CV_EXPORTS_W RefineParameters {
     /// checkAllOrders consider the four posible corner orders in the rejectedCorners array.
     // * If it set to false, only the provided corner order is considered (default true).
     CV_PROP_RW bool checkAllOrders;
+private:
+    bool readWrite(const Ptr<FileNode>& readNode = nullptr, const Ptr<FileStorage>& writeStorage = nullptr);
 };
 
-class CV_EXPORTS_W ArucoDetector
+class CV_EXPORTS_W ArucoDetector : public Algorithm
 {
 public:
     /// dictionary indicates the type of markers that will be searched
@@ -319,6 +337,31 @@ public:
                                        InputOutputArray detectedIds, InputOutputArrayOfArrays rejectedCorners,
                                        InputArray cameraMatrix = noArray(), InputArray distCoeffs = noArray(),
                                        OutputArray recoveredIdxs = noArray());
+
+    /** @brief Stores algorithm parameters in a file storage
+    */
+    virtual void write(FileStorage& fs) const override {
+        Ptr<FileStorage> pfs = makePtr<FileStorage>(fs);
+        dictionary->writeDictionary(pfs);
+        params->writeDetectorParameters(pfs);
+        refineParams->writeRefineParameters(pfs);
+    }
+
+    /** @brief simplified API for language bindings
+    * @overload
+    */
+    CV_WRAP void write(const String& fileName) const {
+        FileStorage fs(fileName, FileStorage::WRITE);
+        write(fs);
+    }
+
+    /** @brief Reads algorithm parameters from a file storage
+    */
+    CV_WRAP virtual void read(const FileNode& fn) override {
+        dictionary->readDictionary(fn);
+        params->readDetectorParameters(fn);
+        refineParams->readRefineParameters(fn);
+    }
 };
 
 /**

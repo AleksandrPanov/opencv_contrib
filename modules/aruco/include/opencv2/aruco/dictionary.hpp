@@ -66,8 +66,6 @@ class CV_EXPORTS_W Dictionary {
     CV_PROP_RW int maxCorrectionBits; // maximum number of bits that can be corrected
 
 
-    /**
-      */
     Dictionary(const Mat &_bytesList = Mat(), int _markerSize = 0, int _maxcorr = 0);
 
 

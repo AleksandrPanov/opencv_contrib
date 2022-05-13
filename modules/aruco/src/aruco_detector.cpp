@@ -15,48 +15,80 @@ namespace aruco {
 
 using namespace std;
 
-template<typename T>
-static inline bool readParameter(const FileNode& node, T& parameter)
-{
-    if (!node.empty()) {
-        node >> parameter;
-        return true;
-    }
-    return false;
-}
+bool DetectorParameters::readWrite(const Ptr<FileNode>& readNode, const Ptr<FileStorage>& writeStorage) {
+    CV_Assert(!readNode.empty() || !writeStorage.empty());
+    bool check = false;
 
-bool DetectorParameters::readDetectorParameters(const FileNode& fn)
-{
-    if(fn.empty())
-        return true;
-    bool checkRead = false;
-    checkRead |= readParameter(fn["adaptiveThreshWinSizeMin"], this->adaptiveThreshWinSizeMin);
-    checkRead |= readParameter(fn["adaptiveThreshWinSizeMax"], this->adaptiveThreshWinSizeMax);
-    checkRead |= readParameter(fn["adaptiveThreshWinSizeStep"], this->adaptiveThreshWinSizeStep);
-    checkRead |= readParameter(fn["adaptiveThreshConstant"], this->adaptiveThreshConstant);
-    checkRead |= readParameter(fn["minMarkerPerimeterRate"], this->minMarkerPerimeterRate);
-    checkRead |= readParameter(fn["maxMarkerPerimeterRate"], this->maxMarkerPerimeterRate);
-    checkRead |= readParameter(fn["polygonalApproxAccuracyRate"], this->polygonalApproxAccuracyRate);
-    checkRead |= readParameter(fn["minCornerDistanceRate"], this->minCornerDistanceRate);
-    checkRead |= readParameter(fn["minDistanceToBorder"], this->minDistanceToBorder);
-    checkRead |= readParameter(fn["minMarkerDistanceRate"], this->minMarkerDistanceRate);
-    checkRead |= readParameter(fn["cornerRefinementMethod"], this->cornerRefinementMethod);
-    checkRead |= readParameter(fn["cornerRefinementWinSize"], this->cornerRefinementWinSize);
-    checkRead |= readParameter(fn["cornerRefinementMaxIterations"], this->cornerRefinementMaxIterations);
-    checkRead |= readParameter(fn["cornerRefinementMinAccuracy"], this->cornerRefinementMinAccuracy);
-    checkRead |= readParameter(fn["markerBorderBits"], this->markerBorderBits);
-    checkRead |= readParameter(fn["perspectiveRemovePixelPerCell"], this->perspectiveRemovePixelPerCell);
-    checkRead |= readParameter(fn["perspectiveRemoveIgnoredMarginPerCell"], this->perspectiveRemoveIgnoredMarginPerCell);
-    checkRead |= readParameter(fn["maxErroneousBitsInBorderRate"], this->maxErroneousBitsInBorderRate);
-    checkRead |= readParameter(fn["minOtsuStdDev"], this->minOtsuStdDev);
-    checkRead |= readParameter(fn["errorCorrectionRate"], this->errorCorrectionRate);
+    check |= readWriteParameter("adaptiveThreshWinSizeMin", this->adaptiveThreshWinSizeMin, readNode, writeStorage);
+    check |= readWriteParameter("adaptiveThreshWinSizeMax", this->adaptiveThreshWinSizeMax, readNode, writeStorage);
+    check |= readWriteParameter("adaptiveThreshWinSizeStep", this->adaptiveThreshWinSizeStep, readNode, writeStorage);
+    check |= readWriteParameter("adaptiveThreshConstant", this->adaptiveThreshConstant, readNode, writeStorage);
+    check |= readWriteParameter("minMarkerPerimeterRate", this->minMarkerPerimeterRate, readNode, writeStorage);
+    check |= readWriteParameter("maxMarkerPerimeterRate", this->maxMarkerPerimeterRate, readNode, writeStorage);
+    check |= readWriteParameter("polygonalApproxAccuracyRate", this->polygonalApproxAccuracyRate,
+                                readNode, writeStorage);
+    check |= readWriteParameter("minCornerDistanceRate", this->minCornerDistanceRate, readNode, writeStorage);
+    check |= readWriteParameter("minDistanceToBorder", this->minDistanceToBorder, readNode, writeStorage);
+    check |= readWriteParameter("minMarkerDistanceRate", this->minMarkerDistanceRate, readNode, writeStorage);
+    check |= readWriteParameter("cornerRefinementMethod", this->cornerRefinementMethod, readNode, writeStorage);
+    check |= readWriteParameter("cornerRefinementWinSize", this->cornerRefinementWinSize, readNode, writeStorage);
+    check |= readWriteParameter("cornerRefinementMaxIterations", this->cornerRefinementMaxIterations,
+                                readNode, writeStorage);
+    check |= readWriteParameter("cornerRefinementMinAccuracy", this->cornerRefinementMinAccuracy,
+                                readNode, writeStorage);
+    check |= readWriteParameter("markerBorderBits", this->markerBorderBits, readNode, writeStorage);
+    check |= readWriteParameter("perspectiveRemovePixelPerCell", this->perspectiveRemovePixelPerCell,
+                                readNode, writeStorage);
+    check |= readWriteParameter("perspectiveRemoveIgnoredMarginPerCell", this->perspectiveRemoveIgnoredMarginPerCell,
+                                readNode, writeStorage);
+    check |= readWriteParameter("maxErroneousBitsInBorderRate", this->maxErroneousBitsInBorderRate,
+                                readNode, writeStorage);
+    check |= readWriteParameter("minOtsuStdDev", this->minOtsuStdDev, readNode, writeStorage);
+    check |= readWriteParameter("errorCorrectionRate", this->errorCorrectionRate, readNode, writeStorage);
     // new aruco 3 functionality
-    checkRead |= readParameter(fn["useAruco3Detection"], this->useAruco3Detection);
-    checkRead |= readParameter(fn["minSideLengthCanonicalImg"], this->minSideLengthCanonicalImg);
-    checkRead |= readParameter(fn["minMarkerLengthRatioOriginalImg"], this->minMarkerLengthRatioOriginalImg);
-    return checkRead;
+    check |= readWriteParameter("useAruco3Detection", this->useAruco3Detection, readNode, writeStorage);
+    check |= readWriteParameter("minSideLengthCanonicalImg", this->minSideLengthCanonicalImg, readNode, writeStorage);
+    check |= readWriteParameter("minMarkerLengthRatioOriginalImg", this->minMarkerLengthRatioOriginalImg,
+                                readNode, writeStorage);
+    return check;
 }
 
+bool DetectorParameters::readDetectorParameters(const FileNode& fn) {
+    if(fn.empty())
+        return false;
+    Ptr<FileNode> pfn = makePtr<FileNode>(fn);
+    return readWrite(pfn);
+}
+
+bool DetectorParameters::writeDetectorParameters(const Ptr<FileStorage>& fs)
+{
+    if (fs.empty() && !fs->isOpened())
+        return false;
+    return readWrite(nullptr, fs);
+}
+
+bool RefineParameters::readWrite(const Ptr<FileNode>& readNode, const Ptr<FileStorage>& writeStorage) {
+    CV_Assert(!readNode.empty() || !writeStorage.empty());
+    bool check = false;
+
+    check |= readWriteParameter("minRepDistance", this->minRepDistance, readNode, writeStorage);
+    check |= readWriteParameter("errorCorrectionRate", this->errorCorrectionRate, readNode, writeStorage);
+    check |= readWriteParameter("checkAllOrders", this->checkAllOrders, readNode, writeStorage);
+    return check;
+}
+
+bool RefineParameters::readRefineParameters(const FileNode &fn) {
+    if(fn.empty())
+        return false;
+    Ptr<FileNode> pfn = makePtr<FileNode>(fn);
+    return readWrite(pfn);
+}
+
+bool RefineParameters::writeRefineParameters(const Ptr<FileStorage> &fs) {
+    if(fs.empty())
+        return false;
+    return readWrite(nullptr, fs);
+}
 
 /**
   * @brief Threshold input image using adaptive thresholding
@@ -163,7 +195,7 @@ static void _reorderCandidatesCorners(vector< vector< Point2f > > &candidates) {
 /**
   * @brief to make sure that the corner's order of both candidates (default/white) is the same
   */
-static vector< Point2f > alignContourOrder( Point2f corner, vector< Point2f > candidate){
+static vector<Point2f> alignContourOrder(Point2f corner, vector< Point2f > candidate) {
     uint8_t r=0;
     double min = cv::norm( Vec2f( corner - candidate[0] ), NORM_L2SQR);
     for(uint8_t pos=1; pos < 4; pos++) {
@@ -478,8 +510,7 @@ static int _getBorderErrors(const Mat &bits, int markerSize, int borderSize) {
 static uint8_t _identifyOneCandidate(const Ptr<Dictionary>& dictionary, InputArray _image,
                                   const vector<Point2f>& _corners, int& idx,
                                   const Ptr<DetectorParameters>& params, int& rotation,
-                                  const float scale = 1.f)
-{
+                                  const float scale = 1.f) {
     CV_DbgAssert(_corners.size() == 4);
     CV_DbgAssert(_image.getMat().total() != 0);
     CV_DbgAssert(params->markerBorderBits > 0);
@@ -1017,7 +1048,6 @@ void ArucoDetector::refineDetectedMarkers(InputArray _image, const Ptr<Board> &_
                            InputOutputArrayOfArrays _detectedCorners, InputOutputArray _detectedIds,
                            InputOutputArrayOfArrays _rejectedCorners, InputArray _cameraMatrix,
                            InputArray _distCoeffs, OutputArray _recoveredIdxs) {
-
     CV_Assert(refineParams->minRepDistance > 0);
 
     if(_detectedIds.total() == 0 || _rejectedCorners.total() == 0) return;
@@ -1177,12 +1207,9 @@ void ArucoDetector::refineDetectedMarkers(InputArray _image, const Ptr<Board> &_
     }
 }
 
-/**
- */
+
 void drawDetectedMarkers(InputOutputArray _image, InputArrayOfArrays _corners,
                          InputArray _ids, Scalar borderColor) {
-
-
     CV_Assert(_image.getMat().total() != 0 &&
               (_image.getMat().channels() == 1 || _image.getMat().channels() == 3));
     CV_Assert((_corners.total() == _ids.total()) || _ids.total() == 0);
