@@ -3,7 +3,6 @@
 // of this distribution and at http://opencv.org/license.html
 
 #include <opencv2/aruco/aruco_calib_pose.hpp>
-#include <opencv2/calib3d.hpp>
 
 namespace cv {
 namespace aruco {
@@ -41,24 +40,37 @@ void getBoardObjectAndImagePoints(const Ptr<Board> &board, InputArrayOfArrays de
 }
 
 /**
-  * @brief Return object points for the system centered in a single marker, given the marker length
+  * @brief Return object points for the system centered in a middle (by default) or in a top left corner of single
+  * marker, given the marker length
   */
-static Mat _getSingleMarkerObjectPoints(float markerLength) {
+static Mat _getSingleMarkerObjectPoints(float markerLength, const EstimateParameters& estimateParameters) {
     CV_Assert(markerLength > 0);
     Mat objPoints(4, 1, CV_32FC3);
     // set coordinate system in the top-left corner of the marker, with Z pointing out
-    objPoints.ptr< Vec3f >(0)[0] = Vec3f(0.f, 0.f, 0);
-    objPoints.ptr< Vec3f >(0)[1] = Vec3f(markerLength, 0.f, 0);
-    objPoints.ptr< Vec3f >(0)[2] = Vec3f(markerLength, markerLength, 0);
-    objPoints.ptr< Vec3f >(0)[3] = Vec3f(0.f, markerLength, 0);
+    if (estimateParameters.pattern == CW_top_left_corner) {
+        objPoints.ptr<Vec3f>(0)[0] = Vec3f(0.f, 0.f, 0);
+        objPoints.ptr<Vec3f>(0)[1] = Vec3f(markerLength, 0.f, 0);
+        objPoints.ptr<Vec3f>(0)[2] = Vec3f(markerLength, markerLength, 0);
+        objPoints.ptr<Vec3f>(0)[3] = Vec3f(0.f, markerLength, 0);
+    }
+    else if (estimateParameters.pattern == CCW_center) {
+        objPoints.ptr<Vec3f>(0)[0] = Vec3f(-markerLength/2.f, markerLength/2.f, 0);
+        objPoints.ptr<Vec3f>(0)[1] = Vec3f(markerLength/2.f, markerLength/2.f, 0);
+        objPoints.ptr<Vec3f>(0)[2] = Vec3f(markerLength/2.f, -markerLength/2.f, 0);
+        objPoints.ptr<Vec3f>(0)[3] = Vec3f(-markerLength/2.f, -markerLength/2.f, 0);
+    }
+    else
+        CV_Error(Error::StsBadArg, "Unknown estimateParameters pattern");
     return objPoints;
 }
 
-void estimatePoseSingleMarkers(InputArrayOfArrays _corners, float markerLength, InputArray _cameraMatrix,
-                               InputArray _distCoeffs,  OutputArray _rvecs, OutputArray _tvecs, OutputArray _objPoints) {
+void estimatePoseSingleMarkers(InputArrayOfArrays _corners, float markerLength,
+                               InputArray _cameraMatrix, InputArray _distCoeffs,
+                               OutputArray _rvecs, OutputArray _tvecs, OutputArray _objPoints,
+                               Ptr<EstimateParameters> estimateParameters) {
     CV_Assert(markerLength > 0);
 
-    Mat markerObjPoints = _getSingleMarkerObjectPoints(markerLength);
+    Mat markerObjPoints = _getSingleMarkerObjectPoints(markerLength, *estimateParameters);
     int nMarkers = (int)_corners.total();
     _rvecs.create(nMarkers, 1, CV_64FC3);
     _tvecs.create(nMarkers, 1, CV_64FC3);
@@ -72,7 +84,7 @@ void estimatePoseSingleMarkers(InputArrayOfArrays _corners, float markerLength, 
 
         for (int i = begin; i < end; i++) {
             solvePnP(markerObjPoints, _corners.getMat(i), _cameraMatrix, _distCoeffs, rvecs.at<Vec3d>(i),
-                     tvecs.at<Vec3d>(i));
+                     tvecs.at<Vec3d>(i), estimateParameters->useExtrinsicGuess, estimateParameters->solvePnPMethod);
         }
     });
 

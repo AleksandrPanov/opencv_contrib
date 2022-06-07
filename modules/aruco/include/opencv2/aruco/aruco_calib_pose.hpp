@@ -4,12 +4,64 @@
 #ifndef __OPENCV_ARUCO_CALIB_POSE_HPP__
 #define __OPENCV_ARUCO_CALIB_POSE_HPP__
 #include <opencv2/aruco/board.hpp>
+#include <opencv2/calib3d.hpp>
 
 namespace cv {
 namespace aruco {
 
 //! @addtogroup aruco
 //! @{
+
+/** @brief
+ * rvec/tvec define the right handed coordinate system of the marker.
+ * PatternPos defines center this system and axes direction.
+ * Axis X (red color) - first coordinate, axis Y (green color) - second coordinate,
+ * axis Z (blue color) - third coordinate.
+ * @sa estimatePoseSingleMarkers(), @ref tutorial_aruco_detection
+ */
+enum PatternPos {
+    /** @brief The marker coordinate system is centered on the middle of the marker.
+        * The coordinates of the four corners (CCW order) of the marker in its own coordinate system are:
+        * (-markerLength/2, markerLength/2, 0), (markerLength/2, markerLength/2, 0),
+        * (markerLength/2, -markerLength/2, 0), (-markerLength/2, -markerLength/2, 0).
+        *
+        * These pattern points define this coordinate system:
+        * ![Image with axes drawn](images/singlemarkersaxes.jpg)
+        */
+    CCW_center,
+    /** @brief The marker coordinate system is centered on the top-left corner of the marker.
+        * The coordinates of the four corners (CW order) of the marker in its own coordinate system are:
+        * (0, 0, 0), (markerLength, 0, 0),
+        * (markerLength, markerLength, 0), (0, markerLength, 0).
+        *
+        * These pattern points define this coordinate system:
+        * ![Image with axes drawn](images/singlemarkersaxes2.jpg)
+        */
+    CW_top_left_corner
+};
+
+/** @brief
+ * Pose estimation parameters
+ * @param pattern Defines center this system and axes direction (default PatternPos::CCW_center).
+ * @param useExtrinsicGuess Parameter used for SOLVEPNP_ITERATIVE. If true (1), the function uses the provided
+ * rvec and tvec values as initial approximations of the rotation and translation vectors, respectively, and further
+ * optimizes them (default false).
+ * @param solvePnPMethod Method for solving a PnP problem: see @ref calib3d_solvePnP_flags (default SOLVEPNP_ITERATIVE).
+ * @sa PatternPos, solvePnP(), @ref tutorial_aruco_detection
+ */
+struct CV_EXPORTS_W EstimateParameters {
+    CV_PROP_RW PatternPos pattern;
+    CV_PROP_RW bool useExtrinsicGuess;
+    CV_PROP_RW SolvePnPMethod solvePnPMethod;
+
+    EstimateParameters(): pattern(CCW_center), useExtrinsicGuess(false),
+                          solvePnPMethod(SOLVEPNP_ITERATIVE) {}
+
+    CV_WRAP static Ptr<EstimateParameters> create() {
+        return makePtr<EstimateParameters>();
+    }
+};
+
 
 /**
  * @brief Pose estimation for single markers
@@ -29,21 +81,28 @@ namespace aruco {
  * @param tvecs array of output translation vectors (e.g. std::vector<cv::Vec3d>).
  * Each element in tvecs corresponds to the specific marker in imgPoints.
  * @param _objPoints array of object points of all the marker corners
+ * @param estimateParameters set the origin of coordinate system and the coordinates of the four corners of the marker
+ * (default estimateParameters.pattern = PatternPos::CCW_center, estimateParameters.useExtrinsicGuess = false,
+ * estimateParameters.solvePnPMethod = SOLVEPNP_ITERATIVE).
  *
  * This function receives the detected markers and returns their pose estimation respect to
  * the camera individually. So for each marker, one rotation and translation vector is returned.
  * The returned transformation is the one that transforms points from each marker coordinate system
  * to the camera coordinate system.
- * The marker corrdinate system is centered on the middle of the marker, with the Z axis
- * perpendicular to the marker plane.
- * The coordinates of the four corners of the marker in its own coordinate system are:
- * (0, 0, 0), (markerLength, 0, 0),
- * (markerLength, markerLength, 0), (0, markerLength, 0)
+ * The marker coordinate system is centered on the middle (by default) or on the top-left corner of the marker,
+ * with the Z axis perpendicular to the marker plane.
+ * estimateParameters defines the coordinates of the four corners of the marker in its own coordinate system (by default) are:
+ * (-markerLength/2, markerLength/2, 0), (markerLength/2, markerLength/2, 0),
+ * (markerLength/2, -markerLength/2, 0), (-markerLength/2, -markerLength/2, 0)
  * @sa use cv::drawFrameAxes to get world coordinate system axis for object points
+ * @sa @ref tutorial_aruco_detection
+ * @sa EstimateParameters
+ * @sa PatternPos
  */
 CV_EXPORTS_W void estimatePoseSingleMarkers(InputArrayOfArrays corners, float markerLength,
                                             InputArray cameraMatrix, InputArray distCoeffs,
-                                            OutputArray rvecs, OutputArray tvecs, OutputArray _objPoints = noArray());
+                                            OutputArray rvecs, OutputArray tvecs, OutputArray _objPoints = noArray(),
+                                            Ptr<EstimateParameters> estimateParameters = EstimateParameters::create());
 
 /**
  * @brief Pose estimation for a board of markers
