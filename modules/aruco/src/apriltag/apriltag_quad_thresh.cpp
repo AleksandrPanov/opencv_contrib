@@ -1028,17 +1028,7 @@ int fit_quad(const Ptr<DetectorParameters> &_params, const Mat im, zarray_t *clu
     return res;
 }
 
-/**
- *
- * @param nCidx0
- * @param nCidx1
- * @param nClusters
- * @param nW
- * @param nH
- * @param nquads
- * @param td
- * @param im
- */
+
 static void do_quad(int nCidx0, int nCidx1, zarray_t &nClusters, int nW, int nH, zarray_t *nquads, const Ptr<DetectorParameters> &td, const Mat im){
 
     CV_Assert(nquads != NULL);
@@ -1078,12 +1068,6 @@ static void do_quad(int nCidx0, int nCidx1, zarray_t &nClusters, int nW, int nH,
     }
 }
 
-/**
- *
- * @param mIm
- * @param parameters
- * @param mThresh
- */
 void threshold(const Mat mIm, const Ptr<DetectorParameters> &parameters, Mat& mThresh){
     int w = mIm.cols, h = mIm.rows;
     int s = (unsigned) mIm.step;
@@ -1306,14 +1290,7 @@ static void _darken(const Mat &im){
 }
 #endif
 
-/**
- *
- * @param parameters
- * @param mImg
- * @param contours
- * @return
- */
-zarray_t *apriltag_quad_thresh(const Ptr<DetectorParameters> &parameters, const Mat & mImg, std::vector< std::vector< Point > > &contours){
+zarray_t *apriltag_quad_thresh(const Ptr<DetectorParameters> &parameters, const Mat & mImg, std::vector<std::vector<Point > > &contours){
 
     ////////////////////////////////////////////////////////
     // step 1. threshold the image, creating the edge image.
@@ -1499,7 +1476,7 @@ out = Mat::zeros(h, w, CV_8UC3);
         zarray_t *cluster;
         _zarray_get(clusters, i, &cluster);
 
-        std::vector< Point > cnt;
+        std::vector<Point> cnt;
         for (int j = 0; j < _zarray_size(cluster); j++) {
             struct pt *p;
             _zarray_get_volatile(cluster, j, &p);
@@ -1567,8 +1544,8 @@ imwrite("2.5 debug_lines.pnm", out);
     return quads;
 }
 
-void _apriltag(Mat im_orig, const Ptr<DetectorParameters> & _params, std::vector< std::vector< Point2f > > &candidates,
-        std::vector< std::vector< Point > > &contours){
+void _apriltag(Mat im_orig, const Ptr<DetectorParameters> & _params, std::vector<std::vector<Point2f> > &candidates,
+               std::vector<std::vector<Point> > &contours){
 
     ///////////////////////////////////////////////////////////
     /// Step 1. Detect quads according to requested image decimation
@@ -1674,7 +1651,7 @@ void _apriltag(Mat im_orig, const Ptr<DetectorParameters> & _params, std::vector
         struct sQuad *quad;
         _zarray_get_volatile(quads, i, &quad);
 
-        std::vector< Point2f > corners;
+        std::vector<Point2f> corners;
         corners.push_back(Point2f(quad->p[3][0], quad->p[3][1]));   //pA
         corners.push_back(Point2f(quad->p[0][0], quad->p[0][1]));   //pB
         corners.push_back(Point2f(quad->p[1][0], quad->p[1][1]));   //pC
