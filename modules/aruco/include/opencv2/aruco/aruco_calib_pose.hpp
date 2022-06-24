@@ -36,6 +36,8 @@ enum PatternPos {
         *
         * These pattern points define this coordinate system:
         * ![Image with axes drawn](images/singlemarkersaxes2.jpg)
+        *
+        * These pattern dots are convenient to use with a chessboard/ChArUco board.
         */
     CW_top_left_corner
 };
@@ -266,7 +268,7 @@ double calibrateCameraCharuco(InputArrayOfArrays charucoCorners, InputArrayOfArr
                               InputOutputArray distCoeffs, OutputArrayOfArrays rvecs, OutputArrayOfArrays tvecs,
                               OutputArray stdDeviationsIntrinsics, OutputArray stdDeviationsExtrinsics,
                               OutputArray perViewErrors, int flags = 0, TermCriteria criteria = TermCriteria(
-                                      TermCriteria::COUNT + TermCriteria::EPS, 30, DBL_EPSILON));
+                              TermCriteria::COUNT + TermCriteria::EPS, 30, DBL_EPSILON));
 
 /** @brief It's the same function as #calibrateCameraCharuco but without calibration error estimation.
 */
