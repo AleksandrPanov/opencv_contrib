@@ -7,7 +7,7 @@
 #include <opencv2/core.hpp>
 #include <vector>
 #include <opencv2/aruco.hpp>
-#include <opencv2/aruco_detector.hpp>
+#include <opencv2/objdetect/aruco_detector.hpp>
 #include <opencv2/aruco/aruco_calib_pose.hpp>
 
 
@@ -90,7 +90,7 @@ CV_EXPORTS_W void detectCharucoDiamond(InputArray image, InputArrayOfArrays mark
                                        OutputArrayOfArrays diamondCorners, OutputArray diamondIds,
                                        InputArray cameraMatrix = noArray(),
                                        InputArray distCoeffs = noArray(),
-                                       Ptr<Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::PREDEFINED_DICTIONARY_NAME::DICT_4X4_50));
+                                       Ptr<Dictionary> dictionary = getPredefinedDictionary(PREDEFINED_DICTIONARY_NAME::DICT_4X4_50));
 
 
 

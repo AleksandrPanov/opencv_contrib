@@ -4,7 +4,7 @@
 #ifndef __OPENCV_ARUCO_HPP__
 #define __OPENCV_ARUCO_HPP__
 
-#include "opencv2/aruco_detector.hpp"
+#include "opencv2/objdetect/aruco_detector.hpp"
 #include "opencv2/aruco/aruco_calib_pose.hpp"
 
 namespace cv {
