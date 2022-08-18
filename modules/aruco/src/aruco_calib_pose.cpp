@@ -8,7 +8,7 @@ namespace cv {
 namespace aruco {
 using namespace std;
 
-void getBoardObjectAndImagePoints(const Ptr<Board> &board, InputArrayOfArrays detectedCorners, InputArray detectedIds,
+void getBoardObjectAndImagePoints(const Ptr<BaseArucoBoard> &board, InputArrayOfArrays detectedCorners, InputArray detectedIds,
                                   OutputArray objPoints, OutputArray imgPoints) {
     CV_Assert(board->getIds().size() == board->getObjPoints().size());
     CV_Assert(detectedIds.total() == detectedCorners.total());
@@ -93,7 +93,7 @@ void estimatePoseSingleMarkers(InputArrayOfArrays _corners, float markerLength,
     }
 }
 
-int estimatePoseBoard(InputArrayOfArrays _corners, InputArray _ids, const Ptr<Board> &board,
+int estimatePoseBoard(InputArrayOfArrays _corners, InputArray _ids, const Ptr<BaseArucoBoard> &board,
                       InputArray _cameraMatrix, InputArray _distCoeffs, InputOutputArray _rvec,
                       InputOutputArray _tvec, bool useExtrinsicGuess) {
     CV_Assert(_corners.total() == _ids.total());
@@ -149,7 +149,7 @@ static bool _arePointsEnoughForPoseEstimation(const vector<Point3f> &points) {
 }
 
 bool estimatePoseCharucoBoard(InputArray _charucoCorners, InputArray _charucoIds,
-                              const Ptr<CharucoBoard> &_board, InputArray _cameraMatrix, InputArray _distCoeffs,
+                              const Ptr<ChArucoBoard> &_board, InputArray _cameraMatrix, InputArray _distCoeffs,
                               InputOutputArray _rvec, InputOutputArray _tvec, bool useExtrinsicGuess) {
     CV_Assert((_charucoCorners.getMat().total() == _charucoIds.getMat().total()));
 
@@ -172,7 +172,7 @@ bool estimatePoseCharucoBoard(InputArray _charucoCorners, InputArray _charucoIds
 }
 
 double calibrateCameraAruco(InputArrayOfArrays _corners, InputArray _ids, InputArray _counter,
-                            const Ptr<Board> &board, Size imageSize, InputOutputArray _cameraMatrix,
+                            const Ptr<BaseArucoBoard> &board, Size imageSize, InputOutputArray _cameraMatrix,
                             InputOutputArray _distCoeffs, OutputArrayOfArrays _rvecs,
                             OutputArrayOfArrays _tvecs,
                             OutputArray _stdDeviationsIntrinsics,
@@ -210,7 +210,7 @@ double calibrateCameraAruco(InputArrayOfArrays _corners, InputArray _ids, InputA
                            _tvecs, _stdDeviationsIntrinsics, _stdDeviationsExtrinsics, _perViewErrors, flags, criteria);
 }
 
-double calibrateCameraAruco(InputArrayOfArrays _corners, InputArray _ids, InputArray _counter, const Ptr<Board> &board,
+double calibrateCameraAruco(InputArrayOfArrays _corners, InputArray _ids, InputArray _counter, const Ptr<BaseArucoBoard> &board,
                             Size imageSize, InputOutputArray _cameraMatrix, InputOutputArray _distCoeffs,
                             OutputArrayOfArrays _rvecs, OutputArrayOfArrays _tvecs, int flags, const TermCriteria& criteria) {
     return calibrateCameraAruco(_corners, _ids, _counter, board, imageSize, _cameraMatrix, _distCoeffs,
@@ -218,7 +218,7 @@ double calibrateCameraAruco(InputArrayOfArrays _corners, InputArray _ids, InputA
 }
 
 double calibrateCameraCharuco(InputArrayOfArrays _charucoCorners, InputArrayOfArrays _charucoIds,
-                              const Ptr<CharucoBoard> &_board, Size imageSize,
+                              const Ptr<ChArucoBoard> &_board, Size imageSize,
                               InputOutputArray _cameraMatrix, InputOutputArray _distCoeffs,
                               OutputArrayOfArrays _rvecs, OutputArrayOfArrays _tvecs,
                               OutputArray _stdDeviationsIntrinsics,
@@ -246,7 +246,7 @@ double calibrateCameraCharuco(InputArrayOfArrays _charucoCorners, InputArrayOfAr
 }
 
 double calibrateCameraCharuco(InputArrayOfArrays _charucoCorners, InputArrayOfArrays _charucoIds,
-                              const Ptr<CharucoBoard> &_board, Size imageSize, InputOutputArray _cameraMatrix,
+                              const Ptr<ChArucoBoard> &_board, Size imageSize, InputOutputArray _cameraMatrix,
                               InputOutputArray _distCoeffs, OutputArrayOfArrays _rvecs, OutputArrayOfArrays _tvecs,
                               int flags, const TermCriteria& criteria) {
 return calibrateCameraCharuco(_charucoCorners, _charucoIds, _board, imageSize, _cameraMatrix, _distCoeffs, _rvecs,

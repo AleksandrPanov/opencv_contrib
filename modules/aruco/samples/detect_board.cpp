@@ -136,7 +136,7 @@ int main(int argc, char *argv[]) {
         cerr << "Dictionary not specified" << endl;
         return 0;
     }
-    aruco::ArucoDetector detector(dictionary, detectorParams);
+    ArucoDetector detector(dictionary, detectorParams);
     VideoCapture inputVideo;
     int waitTime;
     if(!video.empty()) {

@@ -16,7 +16,7 @@ void detectMarkers(InputArray _image, const Ptr<Dictionary> &_dictionary, Output
     detector.detectMarkers(_image, _corners, _ids, _rejectedImgPoints);
 }
 
-void refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
+void refineDetectedMarkers(InputArray _image, const Ptr<BaseArucoBoard> &_board,
                            InputOutputArrayOfArrays _detectedCorners, InputOutputArray _detectedIds,
                            InputOutputArrayOfArrays _rejectedCorners, InputArray _cameraMatrix,
                            InputArray _distCoeffs, float minRepDistance, float errorCorrectionRate,

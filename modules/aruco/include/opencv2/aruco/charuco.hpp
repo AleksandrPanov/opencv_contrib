@@ -42,7 +42,7 @@ namespace aruco {
  * The function returns the number of interpolated corners.
  */
 CV_EXPORTS_W int interpolateCornersCharuco(InputArrayOfArrays markerCorners, InputArray markerIds,
-                                           InputArray image, const Ptr<CharucoBoard> &board,
+                                           InputArray image, const Ptr<ChArucoBoard> &board,
                                            OutputArray charucoCorners, OutputArray charucoIds,
                                            InputArray cameraMatrix = noArray(),
                                            InputArray distCoeffs = noArray(), int minMarkers = 2);

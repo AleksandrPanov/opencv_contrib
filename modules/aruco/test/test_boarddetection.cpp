@@ -65,11 +65,11 @@ class CV_ArucoBoardPose : public cvtest::BaseTest {
             params->minSideLengthCanonicalImg = 16;
             params->errorCorrectionRate = 0.8;
         }
-        detector = aruco::ArucoDetector(dictionary, params);
+        detector = ArucoDetector(dictionary, params);
     }
 
     protected:
-    aruco::ArucoDetector detector;
+    ArucoDetector detector;
     void run(int);
 };
 
@@ -171,11 +171,11 @@ class CV_ArucoRefine : public cvtest::BaseTest {
         if (arucoAlgParams == ArucoAlgParams::USE_ARUCO3)
             params->useAruco3Detection = true;
         Ptr<aruco::RefineParameters> refineParams = makePtr<aruco::RefineParameters>(10, 3., true);
-        detector = aruco::ArucoDetector(dictionary, params, refineParams);
+        detector = ArucoDetector(dictionary, params, refineParams);
     }
 
     protected:
-    aruco::ArucoDetector detector;
+    ArucoDetector detector;
     void run(int);
 };
 

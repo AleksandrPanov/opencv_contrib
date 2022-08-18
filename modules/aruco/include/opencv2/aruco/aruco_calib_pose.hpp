@@ -125,7 +125,7 @@ CV_EXPORTS_W void estimatePoseSingleMarkers(InputArrayOfArrays corners, float ma
  *
  * This function receives the detected markers and returns the pose of a marker board composed
  * by those markers.
- * A Board of marker has a single world coordinate system which is defined by the board layout.
+ * A BaseArucoBoard of marker has a single world coordinate system which is defined by the board layout.
  * The returned transformation is the one that transforms points from the board coordinate system
  * to the camera coordinate system.
  * Input markers that are not included in the board layout are ignored.
@@ -133,7 +133,7 @@ CV_EXPORTS_W void estimatePoseSingleMarkers(InputArrayOfArrays corners, float ma
  * Note that returning a 0 means the pose has not been estimated.
  * @sa use cv::drawFrameAxes to get world coordinate system axis for object points
  */
-CV_EXPORTS_W int estimatePoseBoard(InputArrayOfArrays corners, InputArray ids, const Ptr<Board> &board,
+CV_EXPORTS_W int estimatePoseBoard(InputArrayOfArrays corners, InputArray ids, const Ptr<BaseArucoBoard> &board,
                                    InputArray cameraMatrix, InputArray distCoeffs, InputOutputArray rvec,
                                    InputOutputArray tvec, bool useExtrinsicGuess = false);
 
@@ -147,7 +147,7 @@ CV_EXPORTS_W int estimatePoseBoard(InputArrayOfArrays corners, InputArray ids, c
  * @param objPoints Vector of vectors of board marker points in the board coordinate space.
  * @param imgPoints Vector of vectors of the projections of board marker corner points.
 */
-CV_EXPORTS_W void getBoardObjectAndImagePoints(const Ptr<Board> &board, InputArrayOfArrays detectedCorners,
+CV_EXPORTS_W void getBoardObjectAndImagePoints(const Ptr<BaseArucoBoard> &board, InputArrayOfArrays detectedCorners,
                                                InputArray detectedIds, OutputArray objPoints, OutputArray imgPoints);
 
 /**
@@ -157,7 +157,7 @@ CV_EXPORTS_W void getBoardObjectAndImagePoints(const Ptr<Board> &board, InputArr
  * The corners should have the same format returned by detectMarkers (see #detectMarkers).
  * @param ids list of identifiers for each marker in corners
  * @param counter number of markers in each frame so that corners and ids can be split
- * @param board Marker Board layout
+ * @param board Marker BaseArucoBoard layout
  * @param imageSize Size of the image used only to initialize the intrinsic camera matrix.
  * @param cameraMatrix Output 3x3 floating-point camera matrix
  * \f$A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$ . If CV\_CALIB\_USE\_INTRINSIC\_GUESS
@@ -182,12 +182,12 @@ CV_EXPORTS_W void getBoardObjectAndImagePoints(const Ptr<Board> &board, InputArr
  * @param flags flags Different flags  for the calibration process (see #calibrateCamera for details).
  * @param criteria Termination criteria for the iterative optimization algorithm.
  *
- * This function calibrates a camera using an Aruco Board. The function receives a list of
- * detected markers from several views of the Board. The process is similar to the chessboard
+ * This function calibrates a camera using an Aruco BaseArucoBoard. The function receives a list of
+ * detected markers from several views of the BaseArucoBoard. The process is similar to the chessboard
  * calibration in calibrateCamera(). The function returns the final re-projection error.
  */
 CV_EXPORTS_AS(calibrateCameraArucoExtended)
-double calibrateCameraAruco(InputArrayOfArrays corners, InputArray ids, InputArray counter, const Ptr<Board> &board,
+double calibrateCameraAruco(InputArrayOfArrays corners, InputArray ids, InputArray counter, const Ptr<BaseArucoBoard> &board,
                             Size imageSize, InputOutputArray cameraMatrix, InputOutputArray distCoeffs,
                             OutputArrayOfArrays rvecs, OutputArrayOfArrays tvecs, OutputArray stdDeviationsIntrinsics,
                             OutputArray stdDeviationsExtrinsics, OutputArray perViewErrors, int flags = 0,
@@ -197,7 +197,7 @@ double calibrateCameraAruco(InputArrayOfArrays corners, InputArray ids, InputArr
  * @brief It's the same function as #calibrateCameraAruco but without calibration error estimation.
  */
 CV_EXPORTS_W double calibrateCameraAruco(InputArrayOfArrays corners, InputArray ids, InputArray counter,
-                                         const Ptr<Board> &board, Size imageSize, InputOutputArray cameraMatrix,
+                                         const Ptr<BaseArucoBoard> &board, Size imageSize, InputOutputArray cameraMatrix,
                                          InputOutputArray distCoeffs, OutputArrayOfArrays rvecs = noArray(),
                                          OutputArrayOfArrays tvecs = noArray(), int flags = 0,
                                          const TermCriteria& criteria = TermCriteria(TermCriteria::COUNT + TermCriteria::EPS,
@@ -223,7 +223,7 @@ CV_EXPORTS_W double calibrateCameraAruco(InputArrayOfArrays corners, InputArray 
  * @sa use cv::drawFrameAxes to get world coordinate system axis for object points
  */
 CV_EXPORTS_W bool estimatePoseCharucoBoard(InputArray charucoCorners, InputArray charucoIds,
-                                           const Ptr<CharucoBoard> &board, InputArray cameraMatrix,
+                                           const Ptr<ChArucoBoard> &board, InputArray cameraMatrix,
                                            InputArray distCoeffs, InputOutputArray rvec,
                                            InputOutputArray tvec, bool useExtrinsicGuess = false);
 
@@ -232,7 +232,7 @@ CV_EXPORTS_W bool estimatePoseCharucoBoard(InputArray charucoCorners, InputArray
  *
  * @param charucoCorners vector of detected charuco corners per frame
  * @param charucoIds list of identifiers for each corner in charucoCorners per frame
- * @param board Marker Board layout
+ * @param board Marker BaseArucoBoard layout
  * @param imageSize input image size
  * @param cameraMatrix Output 3x3 floating-point camera matrix
  * \f$A = \vecthreethree{f_x}{0}{c_x}{0}{f_y}{c_y}{0}{0}{1}\f$ . If CV\_CALIB\_USE\_INTRINSIC\_GUESS
@@ -257,13 +257,13 @@ CV_EXPORTS_W bool estimatePoseCharucoBoard(InputArray charucoCorners, InputArray
  * @param flags flags Different flags  for the calibration process (see #calibrateCamera for details).
  * @param criteria Termination criteria for the iterative optimization algorithm.
  *
- * This function calibrates a camera using a set of corners of a  Charuco Board. The function
- * receives a list of detected corners and its identifiers from several views of the Board.
+ * This function calibrates a camera using a set of corners of a  Charuco BaseArucoBoard. The function
+ * receives a list of detected corners and its identifiers from several views of the BaseArucoBoard.
  * The function returns the final re-projection error.
  */
 CV_EXPORTS_AS(calibrateCameraCharucoExtended)
 double calibrateCameraCharuco(InputArrayOfArrays charucoCorners, InputArrayOfArrays charucoIds,
-                              const Ptr<CharucoBoard> &board, Size imageSize, InputOutputArray cameraMatrix,
+                              const Ptr<ChArucoBoard> &board, Size imageSize, InputOutputArray cameraMatrix,
                               InputOutputArray distCoeffs, OutputArrayOfArrays rvecs, OutputArrayOfArrays tvecs,
                               OutputArray stdDeviationsIntrinsics, OutputArray stdDeviationsExtrinsics,
                               OutputArray perViewErrors, int flags = 0, const TermCriteria& criteria = TermCriteria(
@@ -273,7 +273,7 @@ double calibrateCameraCharuco(InputArrayOfArrays charucoCorners, InputArrayOfArr
  * @brief It's the same function as #calibrateCameraCharuco but without calibration error estimation.
  */
 CV_EXPORTS_W double calibrateCameraCharuco(InputArrayOfArrays charucoCorners, InputArrayOfArrays charucoIds,
-                                           const Ptr<CharucoBoard> &board, Size imageSize,
+                                           const Ptr<ChArucoBoard> &board, Size imageSize,
                                            InputOutputArray cameraMatrix, InputOutputArray distCoeffs,
                                            OutputArrayOfArrays rvecs = noArray(),
                                            OutputArrayOfArrays tvecs = noArray(), int flags = 0,

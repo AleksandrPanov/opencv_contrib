@@ -163,7 +163,7 @@ int main(int argc, char *argv[]) {
     vector< vector< int > > allIds;
     Size imgSize;
 
-    aruco::ArucoDetector detector(dictionary, detectorParams);
+    ArucoDetector detector(dictionary, detectorParams);
 
     while(inputVideo.grab()) {
         Mat image, imageCopy;

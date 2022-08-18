@@ -190,7 +190,7 @@ PERF_TEST_P(EstimateAruco, ArucoFirst, ESTIMATE_PARAMS)
         detectorParams->minSideLengthCanonicalImg = 32;
         detectorParams->minMarkerLengthRatioOriginalImg = 0.04f / numMarkersInRow;
     }
-    aruco::ArucoDetector detector(dictionary, detectorParams);
+    ArucoDetector detector(dictionary, detectorParams);
     MarkerPainter painter(markerSize);
     auto image_map = painter.getProjectMarkersTile(numMarkersInRow, detectorParams, dictionary);
 
@@ -222,7 +222,7 @@ PERF_TEST_P(EstimateAruco, ArucoSecond, ESTIMATE_PARAMS)
         detectorParams->minSideLengthCanonicalImg = 64;
         detectorParams->minMarkerLengthRatioOriginalImg = 0.f;
     }
-    aruco::ArucoDetector detector(dictionary, detectorParams);
+    ArucoDetector detector(dictionary, detectorParams);
     const int markerSize = 200;
     const int numMarkersInRow = 11;
     MarkerPainter painter(markerSize);
@@ -278,7 +278,7 @@ PERF_TEST_P(EstimateLargeAruco, ArucoFHD, ESTIMATE_FHD_PARAMS)
         detectorParams->minSideLengthCanonicalImg = get<0>(testParams).minSideLengthCanonicalImg;
         detectorParams->minMarkerLengthRatioOriginalImg = get<0>(testParams).minMarkerLengthRatioOriginalImg;
     }
-    aruco::ArucoDetector detector(dictionary, detectorParams);
+    ArucoDetector detector(dictionary, detectorParams);
     const int markerSize = get<1>(testParams).first;       // 1440 or 480 or 144
     const int numMarkersInRow = get<1>(testParams).second; // 1 or 3 or 144
     MarkerPainter painter(markerSize);                     // num pixels is 1440x1440 as in FHD 1920x1080

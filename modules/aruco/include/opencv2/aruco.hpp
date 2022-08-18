@@ -4,12 +4,11 @@
 #ifndef __OPENCV_ARUCO_HPP__
 #define __OPENCV_ARUCO_HPP__
 
-#include "opencv2/objdetect/aruco_detector.hpp"
 #include "opencv2/aruco/aruco_calib_pose.hpp"
+#include "opencv2/objdetect/aruco_detector.hpp"
 
 namespace cv {
 namespace aruco {
-
 
 /**
 @deprecated Use class ArucoDetector
@@ -21,7 +20,7 @@ CV_EXPORTS_W void detectMarkers(InputArray image, const Ptr<Dictionary> &diction
 /**
 @deprecated Use class ArucoDetector
 */
-CV_EXPORTS_W void refineDetectedMarkers(InputArray image,const  Ptr<Board> &board,
+CV_EXPORTS_W void refineDetectedMarkers(InputArray image,const  Ptr<BaseArucoBoard> &board,
                                         InputOutputArrayOfArrays detectedCorners,
                                         InputOutputArray detectedIds, InputOutputArrayOfArrays rejectedCorners,
                                         InputArray cameraMatrix = noArray(), InputArray distCoeffs = noArray(),

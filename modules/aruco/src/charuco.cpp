@@ -14,7 +14,7 @@ using namespace std;
 /**
   * Remove charuco corners if any of their minMarkers closest markers has not been detected
   */
-static int _filterCornersWithoutMinMarkers(const Ptr<CharucoBoard> &_board,
+static int _filterCornersWithoutMinMarkers(const Ptr<ChArucoBoard> &_board,
                                                     InputArray _allCharucoCorners,
                                                     InputArray _allCharucoIds,
                                                     InputArray _allArucoIds, int minMarkers,
@@ -125,7 +125,7 @@ static int _selectAndRefineChessboardCorners(InputArray _allCorners, InputArray 
   * distance to their closest markers
   */
 static void _getMaximumSubPixWindowSizes(InputArrayOfArrays markerCorners, InputArray markerIds,
-                                         InputArray charucoCorners, const Ptr<CharucoBoard> &board,
+                                         InputArray charucoCorners, const Ptr<ChArucoBoard> &board,
                                          vector< Size > &sizes) {
 
     unsigned int nCharucoCorners = (unsigned int)charucoCorners.getMat().total();
@@ -178,7 +178,7 @@ static void _getMaximumSubPixWindowSizes(InputArrayOfArrays markerCorners, Input
   */
 static int _interpolateCornersCharucoApproxCalib(InputArrayOfArrays _markerCorners,
                                                  InputArray _markerIds, InputArray _image,
-                                                 const Ptr<CharucoBoard> &_board,
+                                                 const Ptr<ChArucoBoard> &_board,
                                                  InputArray _cameraMatrix, InputArray _distCoeffs,
                                                  OutputArray _charucoCorners,
                                                  OutputArray _charucoIds) {
@@ -190,7 +190,7 @@ static int _interpolateCornersCharucoApproxCalib(InputArrayOfArrays _markerCorne
     // approximated pose estimation using marker corners
     Mat approximatedRvec, approximatedTvec;
     int detectedBoardMarkers;
-    Ptr<Board> _b = _board.staticCast<Board>();
+    Ptr<BaseArucoBoard> _b = _board.staticCast<BaseArucoBoard>();
     detectedBoardMarkers =
         aruco::estimatePoseBoard(_markerCorners, _markerIds, _b,
                                  _cameraMatrix, _distCoeffs, approximatedRvec, approximatedTvec);
@@ -221,7 +221,7 @@ static int _interpolateCornersCharucoApproxCalib(InputArrayOfArrays _markerCorne
   */
 static int _interpolateCornersCharucoLocalHom(InputArrayOfArrays _markerCorners,
                                               InputArray _markerIds, InputArray _image,
-                                              const Ptr<CharucoBoard> &_board,
+                                              const Ptr<ChArucoBoard> &_board,
                                               OutputArray _charucoCorners,
                                               OutputArray _charucoIds) {
 
@@ -310,7 +310,7 @@ static int _interpolateCornersCharucoLocalHom(InputArrayOfArrays _markerCorners,
 
 
 int interpolateCornersCharuco(InputArrayOfArrays _markerCorners, InputArray _markerIds,
-                              InputArray _image, const Ptr<CharucoBoard> &_board,
+                              InputArray _image, const Ptr<ChArucoBoard> &_board,
                               OutputArray _charucoCorners, OutputArray _charucoIds,
                               InputArray _cameraMatrix, InputArray _distCoeffs, int minMarkers) {
 
@@ -368,7 +368,7 @@ void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
     const float minRepDistanceRate = 1.302455f;
 
     // create Charuco board layout for diamond (3x3 layout)
-    Ptr<CharucoBoard> _charucoDiamondLayout = CharucoBoard::create(3, 3, squareMarkerLengthRate, 1., dictionary);
+    Ptr<ChArucoBoard> _charucoDiamondLayout = ChArucoBoard::create(3, 3, squareMarkerLengthRate, 1., dictionary);
 
 
     vector< vector< Point2f > > diamondCorners;
@@ -427,7 +427,7 @@ void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
 
         // try to find the rest of markers in the diamond
         vector< int > acceptedIdxs;
-        Ptr<Board> _b = _charucoDiamondLayout.staticCast<Board>();
+        Ptr<BaseArucoBoard> _b = _charucoDiamondLayout.staticCast<BaseArucoBoard>();
         Ptr<RefineParameters> refineParameters = makePtr<RefineParameters>(minRepDistance, -1, false);
         ArucoDetector detector(dictionary, DetectorParameters::create(), refineParameters);
         detector.refineDetectedMarkers(grey, _b, currentMarker, currentMarkerId, candidates, noArray(), noArray(),
@@ -492,8 +492,8 @@ void drawCharucoDiamond(const Ptr<Dictionary> &dictionary, Vec4i ids, int square
     CV_Assert(marginSize >= 0 && borderBits > 0);
 
     // create a charuco board similar to a charuco marker and print it
-    Ptr<CharucoBoard> board =
-        CharucoBoard::create(3, 3, (float)squareLength, (float)markerLength, dictionary);
+    Ptr<ChArucoBoard> board =
+        ChArucoBoard::create(3, 3, (float)squareLength, (float)markerLength, dictionary);
 
     // assign the charuco marker ids
     for(int i = 0; i < 4; i++)
