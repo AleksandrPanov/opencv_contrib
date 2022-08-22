@@ -90,7 +90,7 @@ CV_EXPORTS_W void detectCharucoDiamond(InputArray image, InputArrayOfArrays mark
                                        OutputArrayOfArrays diamondCorners, OutputArray diamondIds,
                                        InputArray cameraMatrix = noArray(),
                                        InputArray distCoeffs = noArray(),
-                                       Ptr<Dictionary> dictionary = getPredefinedDictionary(PREDEFINED_DICTIONARY_NAME::DICT_4X4_50));
+                                       Ptr<ArucoDictionary> dictionary = getPredefinedDictionary(PREDEFINED_DICTIONARY_NAME::DICT_4X4_50));
 
 
 
@@ -133,7 +133,7 @@ CV_EXPORTS_W void drawDetectedDiamonds(InputOutputArray image, InputArrayOfArray
  *
  * This function return the image of a ChArUco marker, ready to be printed.
  */
-CV_EXPORTS_W void drawCharucoDiamond(const Ptr<Dictionary> &dictionary, Vec4i ids, int squareLength,
+CV_EXPORTS_W void drawCharucoDiamond(const Ptr<ArucoDictionary> &dictionary, Vec4i ids, int squareLength,
                                    int markerLength, OutputArray img, int marginSize = 0,
                                    int borderBits = 1);
 

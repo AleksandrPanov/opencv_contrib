@@ -362,7 +362,7 @@ void drawDetectedCornersCharuco(InputOutputArray _image, InputArray _charucoCorn
 void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
                           InputArray _markerIds, float squareMarkerLengthRate,
                           OutputArrayOfArrays _diamondCorners, OutputArray _diamondIds,
-                          InputArray _cameraMatrix, InputArray _distCoeffs, Ptr<Dictionary> dictionary) {
+                          InputArray _cameraMatrix, InputArray _distCoeffs, Ptr<ArucoDictionary> dictionary) {
     CV_Assert(_markerIds.total() > 0 && _markerIds.total() == _markerCorners.total());
 
     const float minRepDistanceRate = 1.302455f;
@@ -486,7 +486,7 @@ void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
 }
 
 
-void drawCharucoDiamond(const Ptr<Dictionary> &dictionary, Vec4i ids, int squareLength, int markerLength,
+void drawCharucoDiamond(const Ptr<ArucoDictionary> &dictionary, Vec4i ids, int squareLength, int markerLength,
                         OutputArray _img, int marginSize, int borderBits) {
     CV_Assert(squareLength > 0 && markerLength > 0 && squareLength > markerLength);
     CV_Assert(marginSize >= 0 && borderBits > 0);

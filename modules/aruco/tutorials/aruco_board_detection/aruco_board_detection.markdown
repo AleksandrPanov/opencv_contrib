@@ -273,7 +273,7 @@ This is an example of using the  ```refineDetectedMarkers()``` function:
     cv::Ptr<cv::aruco::GridBoard> board = cv::aruco::GridBoard::create(5, 7, 0.04, 0.01, dictionary);
     std::vector<int> markerIds;
     std::vector<std::vector<cv::Point2f>> markerCorners, rejectedCandidates;
-    cv::aruco::detectMarkers(inputImage, dictionary, markerCorners, markerIds, cv::aruco::DetectorParameters(), rejectedCandidates);
+    cv::aruco::detectMarkers(inputImage, dictionary, markerCorners, markerIds, cv::DetectorParameters(), rejectedCandidates);
 
     cv::aruco::refineDetectedMarkersinputImage, board, markerCorners, markerIds, rejectedCandidates);
     // After calling this function, if any new marker has been detected it will be removed from rejectedCandidates and included

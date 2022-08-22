@@ -87,7 +87,7 @@ int main(int argc, char *argv[]) {
     bool autoScale = parser.has("as");
     float autoScaleFactor = autoScale ? parser.get<float>("as") : 1.f;
 
-    Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
+    Ptr<DetectorParameters> detectorParams = DetectorParameters::create();
     if(parser.has("dp")) {
         FileStorage fs(parser.get<string>("dp"), FileStorage::READ);
         bool readOk = detectorParams->readDetectorParameters(fs.root());

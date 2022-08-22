@@ -80,7 +80,7 @@ public:
 }
 
     std::pair<Mat, vector<Point2f> > getProjectMarker(int id, double yaw, double pitch,
-                                                      const Ptr<aruco::DetectorParameters>& parameters,
+                                                      const Ptr<DetectorParameters>& parameters,
                                                       const Ptr<aruco::Dictionary>& dictionary)
     {
         auto marker_corners = std::make_pair(Mat(imgMarkerSize, imgMarkerSize, CV_8UC1, Scalar::all(255)), vector<Point2f>());
@@ -122,7 +122,7 @@ public:
     }
 
     std::pair<Mat, map<int, vector<Point2f> > > getProjectMarkersTile(const int numMarkers,
-                                                                      const Ptr<aruco::DetectorParameters>& params,
+                                                                      const Ptr<DetectorParameters>& params,
                                                                       const Ptr<aruco::Dictionary>& dictionary)
     {
         Mat tileImage(imgMarkerSize*numMarkers, imgMarkerSize*numMarkers, CV_8UC1, Scalar::all(255));
@@ -177,7 +177,7 @@ PERF_TEST_P(EstimateAruco, ArucoFirst, ESTIMATE_PARAMS)
 {
     UseArucoParams testParams = GetParam();
     Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_250);
-    Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
+    Ptr<DetectorParameters> detectorParams = DetectorParameters::create();
     detectorParams->minDistanceToBorder = 1;
     detectorParams->markerBorderBits = 1;
     detectorParams->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
@@ -211,7 +211,7 @@ PERF_TEST_P(EstimateAruco, ArucoSecond, ESTIMATE_PARAMS)
 {
     UseArucoParams testParams = GetParam();
     Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_250);
-    Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
+    Ptr<DetectorParameters> detectorParams = DetectorParameters::create();
     detectorParams->minDistanceToBorder = 1;
     detectorParams->markerBorderBits = 1;
     detectorParams->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;
@@ -267,7 +267,7 @@ PERF_TEST_P(EstimateLargeAruco, ArucoFHD, ESTIMATE_FHD_PARAMS)
 {
     ArucoTestParams testParams = GetParam();
     Ptr<aruco::Dictionary> dictionary = aruco::getPredefinedDictionary(aruco::DICT_6X6_250);
-    Ptr<aruco::DetectorParameters> detectorParams = aruco::DetectorParameters::create();
+    Ptr<DetectorParameters> detectorParams = DetectorParameters::create();
     detectorParams->minDistanceToBorder = 1;
     detectorParams->markerBorderBits = 1;
     detectorParams->cornerRefinementMethod = cv::aruco::CORNER_REFINE_SUBPIX;

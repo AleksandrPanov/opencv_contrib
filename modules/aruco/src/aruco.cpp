@@ -16,7 +16,7 @@ void detectMarkers(InputArray _image, const Ptr<Dictionary> &_dictionary, Output
     detector.detectMarkers(_image, _corners, _ids, _rejectedImgPoints);
 }
 
-void refineDetectedMarkers(InputArray _image, const Ptr<BaseArucoBoard> &_board,
+void refineDetectedMarkers(InputArray _image, const Ptr<Board> &_board,
                            InputOutputArrayOfArrays _detectedCorners, InputOutputArray _detectedIds,
                            InputOutputArrayOfArrays _rejectedCorners, InputArray _cameraMatrix,
                            InputArray _distCoeffs, float minRepDistance, float errorCorrectionRate,
@@ -26,6 +26,15 @@ void refineDetectedMarkers(InputArray _image, const Ptr<BaseArucoBoard> &_board,
     ArucoDetector detector(_board->getDictionary(), _params, refineParams);
     detector.refineDetectedMarkers(_image, _board, _detectedCorners, _detectedIds, _rejectedCorners, _cameraMatrix,
                                    _distCoeffs, _recoveredIdxs);
+}
+
+bool testCharucoCornersCollinear(const Ptr<CharucoBoard> &board, const _InputArray &charucoIds) {
+    return board->testCharucoCornersCollinear(charucoIds);
+}
+
+void drawPlanarBoard(const Ptr<Board> &board, Size outSize, const _OutputArray &img, int marginSize,
+                     int borderBits) {
+    board->draw(outSize, img, marginSize, borderBits);
 }
 
 }

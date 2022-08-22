@@ -167,7 +167,7 @@ cv::Mat inputImage;
 ...
 std::vector<int> markerIds;
 std::vector<std::vector<cv::Point2f>> markerCorners, rejectedCandidates;
-cv::Ptr<cv::aruco::DetectorParameters> parameters = cv::aruco::DetectorParameters::create();
+cv::Ptr<cv::DetectorParameters> parameters = cv::DetectorParameters::create();
 cv::Ptr<cv::aruco::Dictionary> dictionary = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
 cv::aruco::detectMarkers(inputImage, dictionary, markerCorners, markerIds, parameters, rejectedCandidates);
 @endcode
