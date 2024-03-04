@@ -84,14 +84,25 @@ Mat elementWise(const Mat& src, F&& lambda)
     Mat dst = src.clone();
     CV_Assert(src.isContinuous());
     const int channel = src.channels();
-    const int N = (int)src.total()*channel;
-    double *psrc = (double*)src.data;
+    const int num_elements = (int)src.total()*channel;
+    const double *psrc = (double*)src.data;
     double *pdst = (double*)dst.data;
 
+    //parallel_for_(Range(0, num_elements),[&](const Range& range)
+    //{
+    //    const int start = range.start;
+    //    const int end = range.end;
+    //    for (int i = start; i < end; i++) {
+    //        pdst[i] = lambda(psrc[i]);
+    //    }
+    //});
+
+    const int batch = 128;
+    const int N = num_elements / batch + (num_elements % batch > 0);
     parallel_for_(Range(0, N),[&](const Range& range)
     {
-        const int start = range.start;
-        const int end = range.end;
+        const int start = range.start * batch;
+        const int end = std::min(range.start + batch, num_elements);
         for (int i = start; i < end; i++) {
             pdst[i] = lambda(psrc[i]);
         }
