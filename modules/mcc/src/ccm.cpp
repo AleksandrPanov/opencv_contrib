@@ -153,6 +153,7 @@ ColorCorrectionModel::Impl::Impl()
 
 Mat ColorCorrectionModel::Impl::prepare(const Mat& inp)
 {
+    CV_TRACE_FUNCTION();
     switch (ccm_type)
     {
     case cv::ccm::CCM_3x3:

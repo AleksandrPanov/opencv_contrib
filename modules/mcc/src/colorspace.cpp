@@ -134,6 +134,7 @@ void RGBBase_::calM()
  */
 void RGBBase_::calOperations()
 {
+    CV_TRACE_FUNCTION();
     // rgb -> rgbl
     toL = [this](Mat rgb) -> Mat { return toLFunc(rgb); };
 
@@ -163,6 +164,7 @@ Mat AdobeRGBBase_::toLFunc(Mat& rgb) { return gammaCorrection(rgb, gamma); }
 
 Mat AdobeRGBBase_::fromLFunc(Mat& rgbl)
 {
+    // CV_TRACE_FUNCTION();
     return gammaCorrection(rgbl, 1. / gamma);
 }
 
@@ -209,6 +211,7 @@ Mat sRGBBase_::toLFunc(Mat& rgb)
  */
 double sRGBBase_::fromLFuncEW(double& x)
 {
+    // CV_TRACE_FUNCTION();
     if (x > beta)
     {
         return alpha * pow(x, 1 / gamma) - (alpha - 1);
@@ -229,6 +232,7 @@ double sRGBBase_::fromLFuncEW(double& x)
  */
 Mat sRGBBase_::fromLFunc(Mat& rgbl)
 {
+    // CV_TRACE_FUNCTION();
     return elementWise(rgbl,
             [this](double a_) -> double { return fromLFuncEW(a_); });
 }

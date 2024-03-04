@@ -29,6 +29,7 @@
 #define __OPENCV_MCC_UTILS_HPP__
 
 #include <opencv2/core.hpp>
+#include <opencv2/core/utils/trace.hpp>
 
 namespace cv {
 namespace ccm {
@@ -79,6 +80,7 @@ Mat rgb2gray(const Mat& rgb);
 template <typename F>
 Mat elementWise(const Mat& src, F&& lambda)
 {
+    // CV_TRACE_FUNCTION();
     Mat dst = src.clone();
     const int channel = src.channels();
     switch (channel)

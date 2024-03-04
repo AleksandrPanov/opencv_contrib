@@ -81,5 +81,37 @@ TEST(CV_mccRunCCheckerDetectorBasic, accuracy_VINYL18)
     runCCheckerDetectorBasic("VINYL18.png", VINYL18);
 }
 
+TEST(CV_mcc_ccm_test, detectAndInfer)
+{
+    string path = cvtest::findDataFile("mcc/10.png");
+    Mat img = imread(path, IMREAD_COLOR);
+    Ptr<CCheckerDetector> detector = CCheckerDetector::create();
+
+    // detect MCC24 board
+    ASSERT_TRUE(detector->process(img, MCC24, 1, false));
+
+    // compute CCM
+    Ptr<CChecker> checker = detector->getBestColorChecker();
+    Mat chartsRGB = checker->getChartsRGB();
+    Mat src = chartsRGB.col(1).clone().reshape(3, chartsRGB.rows/3) / 255.;
+    ColorCorrectionModel model(src, COLORCHECKER_Macbeth);
+    model.run();
+    Mat ccm = model.getCCM();
+
+    //const double loss = model.getLoss();
+    // compute calibrate image
+    Mat calibratedImage;
+    cvtColor(img, calibratedImage, COLOR_BGR2RGB);
+    calibratedImage.convertTo(calibratedImage, CV_64F, 1. / 255.);
+    Mat a;
+    for (int i = 0; i < 3; i++) {
+        a.release();
+        a = model.infer(calibratedImage)*255.;
+    }
+    calibratedImage = a;
+    calibratedImage.convertTo(calibratedImage, CV_8UC3);
+    cvtColor(calibratedImage, calibratedImage, COLOR_RGB2BGR);
+}
+
 } // namespace
 } // namespace opencv_test

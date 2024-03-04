@@ -98,6 +98,7 @@ Mat LinearGamma::linearize(Mat inp)
 
 std::shared_ptr<Linear> getLinear(double gamma, int deg, Mat src, Color dst, Mat mask, RGBBase_ cs, LINEAR_TYPE linear_type)
 {
+    CV_TRACE_FUNCTION();
     std::shared_ptr<Linear> p = std::make_shared<Linear>();
     switch (linear_type)
     {

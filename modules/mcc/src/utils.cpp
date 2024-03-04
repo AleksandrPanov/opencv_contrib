@@ -37,6 +37,7 @@ double gammaCorrection_(const double& element, const double& gamma)
 
 Mat gammaCorrection(const Mat& src, const double& gamma)
 {
+    CV_TRACE_FUNCTION();
     return elementWise(src, [gamma](double element) -> double { return gammaCorrection_(element, gamma); });
 }
 
@@ -84,6 +85,7 @@ Mat maskCopyTo(const Mat& src, const Mat& mask)
 
 Mat multiple(const Mat& xyz, const Mat& ccm)
 {
+    CV_TRACE_FUNCTION();
     Mat tmp = xyz.reshape(1, xyz.rows * xyz.cols);
     Mat res = tmp * ccm;
     res = res.reshape(res.cols, xyz.rows);
