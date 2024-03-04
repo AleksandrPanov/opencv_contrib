@@ -290,14 +290,13 @@ Mat ColorCorrectionModel::infer(const Mat& img, bool islinear)
         CV_Error(Error::StsBadArg, "No CCM values!" );
     }
     Mat img_lin = (p->linear)->linearize(img);
-    Mat img_ccm(img_lin.size(), img_lin.type());
     Mat ccm_ = p->ccm.reshape(0, p->shape / 3);
-    img_ccm = multiple(p->prepare(img_lin), ccm_);
+    img_lin = multiple(p->prepare(img_lin), ccm_);
     if (islinear == true)
     {
-        return img_ccm;
+        return img_lin;
     }
-    return p->cs.fromL(img_ccm);
+    return p->cs.fromL(img_lin, Mat());
 }
 
 void ColorCorrectionModel::Impl::getColor(CONST_COLOR constcolor)

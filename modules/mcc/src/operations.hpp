@@ -39,20 +39,14 @@ namespace ccm {
 class Operation
 {
 public:
-    typedef std::function<Mat(Mat)> MatFunc;
+    typedef std::function<Mat(Mat, Mat)> MatFunc;
     bool linear;
     Mat M;
     MatFunc f;
 
-    Operation()
-        : linear(true)
-        , M(Mat()) {};
-    Operation(Mat M_)
-        : linear(true)
-        , M(M_) {};
-    Operation(MatFunc f_)
-        : linear(false)
-        , f(f_) {};
+    Operation() : linear(true), M(Mat()) {};
+    Operation(Mat M_) : linear(true), M(M_) {};
+    Operation(MatFunc f_) : linear(false), f(f_) {};
     virtual ~Operation() {};
 
     /** @brief operator function will run operation
@@ -67,7 +61,7 @@ public:
     void clear();
     static Operation& get_IDENTITY_OP()
     {
-        static Operation identity_op([](Mat x) { return x; });
+        static Operation identity_op([](Mat x, Mat) { return x; });
         return identity_op;
     }
 };

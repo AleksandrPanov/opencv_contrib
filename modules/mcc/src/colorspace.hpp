@@ -40,7 +40,7 @@ namespace ccm {
 class ColorSpace
 {
 public:
-    typedef std::function<Mat(Mat)> MatFunc;
+    typedef std::function<Mat(Mat, Mat)> MatFunc;
     IO io;
     std::string type;
     bool linear;
@@ -121,9 +121,9 @@ private:
 
     virtual void calLinear() {};
 
-    virtual Mat toLFunc(Mat& /*rgb*/);
+    virtual Mat toLFunc(Mat& /*rgb*/, Mat=Mat());
 
-    virtual Mat fromLFunc(Mat& /*rgbl*/);
+    virtual Mat fromLFunc(Mat& /*rgbl*/, Mat=Mat());
 };
 
 /** @brief Base of Adobe RGB color space;
@@ -136,8 +136,8 @@ public:
     double gamma;
 
 private:
-    Mat toLFunc(Mat& rgb) CV_OVERRIDE;
-    Mat fromLFunc(Mat& rgbl) CV_OVERRIDE;
+    Mat toLFunc(Mat& rgb, Mat=Mat()) CV_OVERRIDE;
+    Mat fromLFunc(Mat& rgbl, Mat=Mat()) CV_OVERRIDE;
 };
 
 /** @brief Base of sRGB color space;
@@ -166,7 +166,7 @@ private:
         @param rgb the input array, type of cv::Mat.
         @return the output array, type of cv::Mat.
     */
-    Mat toLFunc(Mat& rgb) CV_OVERRIDE;
+    Mat toLFunc(Mat& rgb, Mat=Mat()) CV_OVERRIDE;
 
     /** @brief Used by fromLFunc.
     */
@@ -176,7 +176,7 @@ private:
         @param rgbl the input array, type of cv::Mat.
         @return the output array, type of cv::Mat.
     */
-    Mat fromLFunc(Mat& rgbl) CV_OVERRIDE;
+    Mat fromLFunc(Mat& rgbl, Mat=Mat()) CV_OVERRIDE;
 };
 
 /** @brief sRGB color space.
@@ -335,7 +335,7 @@ private:
         @param src the input array, type of cv::Mat.
         @return the output array, type of cv::Mat
     */
-    Mat fromsrc(Mat& src);
+    Mat fromsrc(Mat& src, Mat dst=Mat());
 
     Vec3d tolab(Vec3d& lab);
 
@@ -343,7 +343,7 @@ private:
         @param src the input array, type of cv::Mat.
         @return the output array, type of cv::Mat
     */
-    Mat tosrc(Mat& src);
+    Mat tosrc(Mat& src, Mat dst=Mat());
 };
 
 class GetCS

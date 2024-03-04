@@ -34,7 +34,7 @@ Mat Operation::operator()(Mat& abc)
 {
     if (!linear)
     {
-        return f(abc);
+        return f(abc, Mat());
     }
     if (M.empty())
     {

@@ -136,10 +136,12 @@ void RGBBase_::calOperations()
 {
     CV_TRACE_FUNCTION();
     // rgb -> rgbl
-    toL = [this](Mat rgb) -> Mat { return toLFunc(rgb); };
+    toL = [this](Mat rgb, Mat dst) -> Mat { return toLFunc(rgb, dst); };
 
     // rgbl -> rgb
-    fromL = [this](Mat rgbl) -> Mat { return fromLFunc(rgbl); };
+    fromL = [this](Mat rgbl, Mat dst) -> Mat {
+        return fromLFunc(rgbl, dst);
+    };
 
     if (linear)
     {
@@ -153,16 +155,16 @@ void RGBBase_::calOperations()
     }
 }
 
-Mat RGBBase_::toLFunc(Mat& /*rgb*/) { return Mat(); }
+Mat RGBBase_::toLFunc(Mat& /*rgb*/, Mat) { return Mat(); }
 
-Mat RGBBase_::fromLFunc(Mat& /*rgbl*/) { return Mat(); }
+Mat RGBBase_::fromLFunc(Mat& /*rgbl*/, Mat) { return Mat(); }
 
 /* @brief Base of Adobe RGB color space;
  */
 
-Mat AdobeRGBBase_::toLFunc(Mat& rgb) { return gammaCorrection(rgb, gamma); }
+Mat AdobeRGBBase_::toLFunc(Mat& rgb, Mat dst) { return gammaCorrection(rgb, gamma); }
 
-Mat AdobeRGBBase_::fromLFunc(Mat& rgbl)
+Mat AdobeRGBBase_::fromLFunc(Mat& rgbl, Mat dst)
 {
     // CV_TRACE_FUNCTION();
     return gammaCorrection(rgbl, 1. / gamma);
@@ -201,7 +203,7 @@ double sRGBBase_::toLFuncEW(double& x)
  * @param rgb the input array, type of cv::Mat.
  * @return the output array, type of cv::Mat.
  */
-Mat sRGBBase_::toLFunc(Mat& rgb)
+Mat sRGBBase_::toLFunc(Mat& rgb, Mat dst)
 {
     return elementWise(rgb,
             [this](double a_) -> double { return toLFuncEW(a_); });
@@ -230,9 +232,31 @@ double sRGBBase_::fromLFuncEW(double& x)
  * @param rgbl the input array, type of cv::Mat.
  * @return the output array, type of cv::Mat.
  */
-Mat sRGBBase_::fromLFunc(Mat& rgbl)
+Mat sRGBBase_::fromLFunc(Mat& rgbl, Mat dst)
 {
-    // CV_TRACE_FUNCTION();
+    //Mat dst = rgbl.clone();
+    //CV_Assert(rgbl.isContinuous());
+    //const int channel = rgbl.channels();
+    //const int num_elements = (int)rgbl.total()*channel;
+    //const double *psrc = (double*)rgbl.data;
+    //double *pdst = (double*)dst.data;
+    //const int batch = 128;
+    //const int N = (num_elements / batch) + ((num_elements % batch) > 0);
+    //parallel_for_(Range(0, N),[&](const Range& range)
+    //{
+    //    const int start = range.start * batch;
+    //    const int end = std::min(range.end*batch, num_elements);
+    //    for (int i = start; i < end; i++) {
+    //        //pdst[i] = lambda(psrc[i]);
+    //        const double x = psrc[i];
+    //        if (x > beta)
+    //            pdst[i] = alpha * pow(x, 1. / gamma) - (alpha - 1.);
+    //        else if (x >= -beta)
+    //            pdst[i] = x * phi;
+    //        else pdst[i] = -(alpha * pow(-x, 1. / gamma) - (alpha - 1.));
+    //    }
+    //});
+    //return dst;
     return elementWise(rgbl,
             [this](double a_) -> double { return fromLFuncEW(a_); });
 }
@@ -412,8 +436,8 @@ std::shared_ptr<XYZ> XYZ::get(IO io)
 Lab::Lab(IO io_)
     : ColorSpace(io_, "Lab", true)
 {
-    to = { Operation([this](Mat src) -> Mat { return tosrc(src); }) };
-    from = { Operation([this](Mat src) -> Mat { return fromsrc(src); }) };
+    to = { Operation([this](Mat src, Mat dst) -> Mat { return tosrc(src, dst); }) };
+    from = { Operation([this](Mat src, Mat dst) -> Mat { return fromsrc(src, dst); }) };
 }
 
 Vec3d Lab::fromxyz(cv::Vec3d& xyz)
@@ -433,7 +457,7 @@ Vec3d Lab::fromxyz(cv::Vec3d& xyz)
  * @param src the input array, type of cv::Mat.
  * @return the output array, type of cv::Mat
  */
-Mat Lab::fromsrc(Mat& src)
+Mat Lab::fromsrc(Mat& src, Mat dst)
 {
     return channelWise(src,
             [this](cv::Vec3d a) -> cv::Vec3d { return fromxyz(a); });
@@ -455,7 +479,7 @@ Vec3d Lab::tolab(cv::Vec3d& lab)
  * @param src the input array, type of cv::Mat.
  * @return the output array, type of cv::Mat
  */
-Mat Lab::tosrc(Mat& src)
+Mat Lab::tosrc(Mat& src, Mat dst)
 {
     return channelWise(src,
             [this](cv::Vec3d a) -> cv::Vec3d { return tolab(a); });
