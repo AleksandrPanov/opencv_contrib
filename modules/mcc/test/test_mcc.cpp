@@ -97,19 +97,21 @@ TEST(CV_mcc_ccm_test, detectAndInfer1)
     ColorCorrectionModel model(src, COLORCHECKER_Macbeth);
     model.run();
     Mat ccm = model.getCCM();
-
     //const double loss = model.getLoss();
     // compute calibrate image
     Mat calibratedImage;
     cvtColor(img, calibratedImage, COLOR_BGR2RGB);
     calibratedImage.convertTo(calibratedImage, CV_64F, 1. / 255.);
+    //calibratedImage = model.infer(calibratedImage);
+
     Mat a;
     for (int i = 0; i < 3; i++) {
         a.release();
-        a = model.infer(calibratedImage)*255.;
+        a = model.infer(calibratedImage);
     }
-    calibratedImage = a;
-    calibratedImage.convertTo(calibratedImage, CV_8UC3);
+    a.convertTo(calibratedImage, CV_8UC3, 255.);
+
+    //calibratedImage.convertTo(calibratedImage, CV_8UC3, 255.);
     cvtColor(calibratedImage, calibratedImage, COLOR_RGB2BGR);
 }
 
@@ -155,8 +157,8 @@ TEST(CV_mcc_ccm_test, detectAndInfer)
     Mat calibratedImage;
     cvtColor(img, calibratedImage, COLOR_BGR2RGB);
     calibratedImage.convertTo(calibratedImage, CV_64F, 1. / 255.);
-    calibratedImage = model.infer(calibratedImage)*255.;
-    calibratedImage.convertTo(calibratedImage, CV_8UC3);
+    calibratedImage = model.infer(calibratedImage);
+    calibratedImage.convertTo(calibratedImage, CV_8UC3, 255.);
     cvtColor(calibratedImage, calibratedImage, COLOR_RGB2BGR);
     // check calibrated image
     EXPECT_MAT_NEAR(gold_img, calibratedImage, 1.);
