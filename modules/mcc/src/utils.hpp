@@ -82,8 +82,22 @@ Mat elementWise(const Mat& src, F&& lambda)
 {
     // CV_TRACE_FUNCTION();
     Mat dst = src.clone();
+    CV_Assert(src.isContinuous());
     const int channel = src.channels();
-    switch (channel)
+    const int N = (int)src.total()*channel;
+    double *psrc = (double*)src.data;
+    double *pdst = (double*)dst.data;
+
+    parallel_for_(Range(0, N),[&](const Range& range)
+    {
+        const int start = range.start;
+        const int end = range.end;
+        for (int i = start; i < end; i++) {
+            pdst[i] = lambda(psrc[i]);
+        }
+    });
+
+    /*switch (channel)
     {
     case 1:
     {
@@ -110,7 +124,7 @@ Mat elementWise(const Mat& src, F&& lambda)
     default:
         CV_Error(Error::StsBadArg, "Wrong channel!" );
         break;
-    }
+    }*/
     return dst;
 }
 
@@ -121,6 +135,7 @@ Mat elementWise(const Mat& src, F&& lambda)
 template <typename F>
 Mat channelWise(const Mat& src, F&& lambda)
 {
+    CV_TRACE_FUNCTION();
     Mat dst = src.clone();
     MatIterator_<Vec3d> it, end;
     for (it = dst.begin<Vec3d>(), end = dst.end<Vec3d>(); it != end; ++it)
