@@ -98,11 +98,11 @@ Mat elementWise(const Mat& src, F&& lambda)
     //});
 
     const int batch = 128;
-    const int N = num_elements / batch + (num_elements % batch > 0);
+    const int N = (num_elements / batch) + ((num_elements % batch) > 0);
     parallel_for_(Range(0, N),[&](const Range& range)
     {
         const int start = range.start * batch;
-        const int end = std::min(range.start + batch, num_elements);
+        const int end = std::min(range.end*batch, num_elements);
         for (int i = start; i < end; i++) {
             pdst[i] = lambda(psrc[i]);
         }

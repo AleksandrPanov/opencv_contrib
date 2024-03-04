@@ -52,13 +52,12 @@ Mat gammaCorrection(const Mat& src, const double& gamma)
     //        pdst[i] = (psrc[i] >= 0. ? pow(psrc[i], gamma) : -pow((-psrc[i]), gamma));
     //    }
     //});
-
     //const int batch = 128;
-    //const int N = num_elements / batch + (num_elements % batch > 0);
+    //const int N = (num_elements / batch) + ((num_elements % batch) > 0);
     //parallel_for_(Range(0, N),[&](const Range& range)
     //{
     //    const int start = range.start * batch;
-    //    const int end = std::min(range.start + batch, num_elements);
+    //    const int end = std::min(range.end * batch, num_elements);
     //    for (int i = start; i < end; i++) {
     //        pdst[i] = (psrc[i] >= 0. ? pow(psrc[i], gamma) : -pow((-psrc[i]), gamma));
     //    }
