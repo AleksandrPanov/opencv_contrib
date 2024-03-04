@@ -155,17 +155,17 @@ void RGBBase_::calOperations()
 
 Mat RGBBase_::toLFunc(Mat& /*rgb*/) { return Mat(); }
 
-Mat RGBBase_::fromLFunc(Mat& /*rgbl*/) { return Mat(); }
+Mat RGBBase_::fromLFunc(Mat& /*rgbl*/, Mat) { return Mat(); }
 
 /* @brief Base of Adobe RGB color space;
  */
 
 Mat AdobeRGBBase_::toLFunc(Mat& rgb) { return gammaCorrection(rgb, gamma); }
 
-Mat AdobeRGBBase_::fromLFunc(Mat& rgbl)
+Mat AdobeRGBBase_::fromLFunc(Mat& rgbl, Mat dst)
 {
     // CV_TRACE_FUNCTION();
-    return gammaCorrection(rgbl, 1. / gamma);
+    return gammaCorrection(rgbl, 1. / gamma, dst);
 }
 
 /* @brief Base of sRGB color space;
@@ -230,11 +230,10 @@ double sRGBBase_::fromLFuncEW(double& x)
  * @param rgbl the input array, type of cv::Mat.
  * @return the output array, type of cv::Mat.
  */
-Mat sRGBBase_::fromLFunc(Mat& rgbl)
+Mat sRGBBase_::fromLFunc(Mat& rgbl, Mat dst)
 {
     // CV_TRACE_FUNCTION();
-    return elementWise(rgbl,
-            [this](double a_) -> double { return fromLFuncEW(a_); });
+    return elementWise(rgbl, [this](double a_) -> double { return fromLFuncEW(a_); }, dst);
 }
 
 /* @brief sRGB color space.

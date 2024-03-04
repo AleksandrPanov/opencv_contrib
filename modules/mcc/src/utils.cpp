@@ -35,7 +35,7 @@ double inline gammaCorrection_(const double& element, const double& gamma)
     return (element >= 0 ? pow(element, gamma) : -pow((-element), gamma));
 }
 
-Mat gammaCorrection(const Mat& src, const double& gamma)
+Mat gammaCorrection(const Mat& src, const double& gamma, Mat dst)
 {
     //CV_TRACE_FUNCTION();
     //Mat dst = src.clone();
@@ -63,7 +63,7 @@ Mat gammaCorrection(const Mat& src, const double& gamma)
     //    }
     //});
     //return dst;
-    return elementWise(src, [gamma](double element) -> double { return gammaCorrection_(element, gamma); });
+    return elementWise(src, [gamma](double element) -> double { return gammaCorrection_(element, gamma); }, dst);
 }
 
 Mat maskCopyTo(const Mat& src, const Mat& mask)

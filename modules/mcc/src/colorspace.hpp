@@ -108,6 +108,7 @@ public:
     */
     void bind(RGBBase_& rgbl);
 
+    virtual Mat fromLFunc(Mat& /*rgbl*/, Mat=Mat());
 private:
     virtual void setParameter() {};
 
@@ -122,8 +123,6 @@ private:
     virtual void calLinear() {};
 
     virtual Mat toLFunc(Mat& /*rgb*/);
-
-    virtual Mat fromLFunc(Mat& /*rgbl*/);
 };
 
 /** @brief Base of Adobe RGB color space;
@@ -135,9 +134,9 @@ public:
     using RGBBase_::RGBBase_;
     double gamma;
 
+    Mat fromLFunc(Mat& rgbl, Mat dst=Mat()) CV_OVERRIDE;
 private:
     Mat toLFunc(Mat& rgb) CV_OVERRIDE;
-    Mat fromLFunc(Mat& rgbl) CV_OVERRIDE;
 };
 
 /** @brief Base of sRGB color space;
@@ -153,6 +152,12 @@ public:
     double beta;
     double phi;
     double K0;
+
+    /** @brief Delinearization.
+        @param rgbl the input array, type of cv::Mat.
+        @return the output array, type of cv::Mat.
+    */
+    Mat fromLFunc(Mat& rgbl, Mat dst=Mat()) CV_OVERRIDE;
 
 private:
     /** @brief linearization parameters
@@ -171,12 +176,6 @@ private:
     /** @brief Used by fromLFunc.
     */
     double fromLFuncEW(double& x);
-
-    /** @brief Delinearization.
-        @param rgbl the input array, type of cv::Mat.
-        @return the output array, type of cv::Mat.
-    */
-    Mat fromLFunc(Mat& rgbl) CV_OVERRIDE;
 };
 
 /** @brief sRGB color space.

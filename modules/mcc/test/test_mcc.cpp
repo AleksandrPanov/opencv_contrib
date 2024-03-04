@@ -113,7 +113,7 @@ TEST(CV_mcc_ccm_test, detectAndInfer1)
     cvtColor(calibratedImage, calibratedImage, COLOR_RGB2BGR);
 }
 
-/*TEST(CV_mcc_ccm_test, detectAndInfer)
+TEST(CV_mcc_ccm_test, detectAndInfer)
 {
     string path = cvtest::findDataFile("mcc/mcc_ccm_test.jpg");
     Mat img = imread(path, IMREAD_COLOR);
@@ -160,7 +160,7 @@ TEST(CV_mcc_ccm_test, detectAndInfer1)
     cvtColor(calibratedImage, calibratedImage, COLOR_RGB2BGR);
     // check calibrated image
     EXPECT_MAT_NEAR(gold_img, calibratedImage, 1.);
-}*/
+}
 
 } // namespace
 } // namespace opencv_test

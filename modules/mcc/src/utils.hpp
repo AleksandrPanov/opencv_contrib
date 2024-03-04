@@ -44,7 +44,7 @@ double gammaCorrection_(const double& element, const double& gamma);
     @param src the input array,type of Mat.
     @param gamma a constant for gamma correction.
  */
-Mat gammaCorrection(const Mat& src, const double& gamma);
+Mat gammaCorrection(const Mat& src, const double& gamma, Mat dst=Mat());
 
 /** @brief maskCopyTo a function to delete unsatisfied elementwise.
     @param src the input array, type of Mat.
@@ -78,10 +78,11 @@ Mat rgb2gray(const Mat& rgb);
     @param lambda a for operation
  */
 template <typename F>
-Mat elementWise(const Mat& src, F&& lambda)
+Mat elementWise(const Mat& src, F&& lambda, Mat dst=Mat())
 {
     // CV_TRACE_FUNCTION();
-    Mat dst = src.clone();
+    if (dst.empty() || !dst.isContinuous() || dst.total() != src.total() || dst.type() != src.type())
+        dst = src.clone();
     CV_Assert(src.isContinuous());
     const int channel = src.channels();
     const int num_elements = (int)src.total()*channel;
