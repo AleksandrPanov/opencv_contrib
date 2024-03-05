@@ -232,7 +232,29 @@ double sRGBBase_::fromLFuncEW(double& x)
  */
 Mat sRGBBase_::fromLFunc(Mat& rgbl, Mat dst)
 {
-    // CV_TRACE_FUNCTION();
+    //Mat dst = rgbl.clone();
+    //CV_Assert(rgbl.isContinuous());
+    //const int channel = rgbl.channels();
+    //const int num_elements = (int)rgbl.total()*channel;
+    //const double *psrc = (double*)rgbl.data;
+    //double *pdst = (double*)dst.data;
+    //const int batch = 128;
+    //const int N = (num_elements / batch) + ((num_elements % batch) > 0);
+    //parallel_for_(Range(0, N),[&](const Range& range)
+    //{
+    //    const int start = range.start * batch;
+    //    const int end = std::min(range.end*batch, num_elements);
+    //    for (int i = start; i < end; i++) {
+    //        //pdst[i] = lambda(psrc[i]);
+    //        const double x = psrc[i];
+    //        if (x > beta)
+    //            pdst[i] = alpha * pow(x, 1. / gamma) - (alpha - 1.);
+    //        else if (x >= -beta)
+    //            pdst[i] = x * phi;
+    //        else pdst[i] = -(alpha * pow(-x, 1. / gamma) - (alpha - 1.));
+    //    }
+    //});
+    //return dst;
     return elementWise(rgbl, [this](double a_) -> double { return fromLFuncEW(a_); }, dst);
 }
 
