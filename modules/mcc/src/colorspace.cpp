@@ -211,7 +211,6 @@ Mat sRGBBase_::toLFunc(Mat& rgb)
  */
 double sRGBBase_::fromLFuncEW(double& x)
 {
-    // CV_TRACE_FUNCTION();
     if (x > beta)
     {
         return alpha * pow(x, 1 / gamma) - (alpha - 1);

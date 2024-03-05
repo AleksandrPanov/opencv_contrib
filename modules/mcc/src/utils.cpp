@@ -30,7 +30,7 @@
 namespace cv {
 namespace ccm {
 
-double inline gammaCorrection_(const double& element, const double& gamma)
+double gammaCorrection_(const double& element, const double& gamma)
 {
     return (element >= 0 ? pow(element, gamma) : -pow((-element), gamma));
 }
