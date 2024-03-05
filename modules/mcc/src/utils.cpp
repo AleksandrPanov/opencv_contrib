@@ -37,21 +37,13 @@ double inline gammaCorrection_(const double& element, const double& gamma)
 
 Mat gammaCorrection(const Mat& src, const double& gamma, Mat dst)
 {
-    //CV_TRACE_FUNCTION();
-    //Mat dst = src.clone();
+    //if (dst.empty() || !dst.isContinuous() || dst.total() != src.total() || dst.type() != src.type())
+    //    dst = src.clone();
     //CV_Assert(src.isContinuous());
     //const int channel = src.channels();
     //const int num_elements = (int)src.total()*channel;
     //const double *psrc = (double*)src.data;
     //double *pdst = (double*)dst.data;
-    //parallel_for_(Range(0, num_elements),[&](const Range& range)
-    //{
-    //    const int start = range.start;
-    //    const int end = range.end;
-    //    for (int i = start; i < end; i++) {
-    //        pdst[i] = (psrc[i] >= 0. ? pow(psrc[i], gamma) : -pow((-psrc[i]), gamma));
-    //    }
-    //});
     //const int batch = 128;
     //const int N = (num_elements / batch) + ((num_elements % batch) > 0);
     //parallel_for_(Range(0, N),[&](const Range& range)

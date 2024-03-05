@@ -232,7 +232,8 @@ double sRGBBase_::fromLFuncEW(double& x)
  */
 Mat sRGBBase_::fromLFunc(Mat& rgbl, Mat dst)
 {
-    //Mat dst = rgbl.clone();
+    //if (dst.empty() || !dst.isContinuous() || dst.total() != rgbl.total() || dst.type() != rgbl.type())
+    //    dst = rgbl.clone();
     //CV_Assert(rgbl.isContinuous());
     //const int channel = rgbl.channels();
     //const int num_elements = (int)rgbl.total()*channel;

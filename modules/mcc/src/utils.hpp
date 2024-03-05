@@ -80,36 +80,28 @@ Mat rgb2gray(const Mat& rgb);
 template <typename F>
 Mat elementWise(const Mat& src, F&& lambda, Mat dst=Mat())
 {
-    // CV_TRACE_FUNCTION();
     if (dst.empty() || !dst.isContinuous() || dst.total() != src.total() || dst.type() != src.type())
         dst = src.clone();
-    CV_Assert(src.isContinuous());
     const int channel = src.channels();
-    const int num_elements = (int)src.total()*channel;
-    const double *psrc = (double*)src.data;
-    double *pdst = (double*)dst.data;
+    if (src.isContinuous()) {
+        const int num_elements = (int)src.total()*channel;
+        const double *psrc = (double*)src.data;
+        double *pdst = (double*)dst.data;
 
-    //parallel_for_(Range(0, num_elements),[&](const Range& range)
-    //{
-    //    const int start = range.start;
-    //    const int end = range.end;
-    //    for (int i = start; i < end; i++) {
-    //        pdst[i] = lambda(psrc[i]);
-    //    }
-    //});
+        const int batch = 128;
+        const int N = (num_elements / batch) + ((num_elements % batch) > 0);
+        parallel_for_(Range(0, N),[&](const Range& range)
+        {
+            const int start = range.start * batch;
+            const int end = std::min(range.end*batch, num_elements);
+            for (int i = start; i < end; i++) {
+                pdst[i] = lambda(psrc[i]);
+            }
+        });
+        return dst;
+    }
 
-    const int batch = 128;
-    const int N = (num_elements / batch) + ((num_elements % batch) > 0);
-    parallel_for_(Range(0, N),[&](const Range& range)
-    {
-        const int start = range.start * batch;
-        const int end = std::min(range.end*batch, num_elements);
-        for (int i = start; i < end; i++) {
-            pdst[i] = lambda(psrc[i]);
-        }
-    });
-
-    /*switch (channel)
+    switch (channel)
     {
     case 1:
     {
@@ -136,7 +128,7 @@ Mat elementWise(const Mat& src, F&& lambda, Mat dst=Mat())
     default:
         CV_Error(Error::StsBadArg, "Wrong channel!" );
         break;
-    }*/
+    }
     return dst;
 }
 
