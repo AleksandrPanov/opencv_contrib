@@ -299,6 +299,47 @@ Mat ColorCorrectionModel::infer(const Mat& img, bool islinear)
     return p->cs.fromL(img_ccm);
 }
 
+Mat ColorCorrectionModel::infer_uint8(Mat& img, bool islinear)
+{
+    CV_Assert(img.type() == CV_8UC3 || img.type() == CV_8UC1 && !img.empty());
+    if (!p->ccm.data)
+        CV_Error(Error::StsBadArg, "No CCM values!" );
+    CV_Assert(p->ccm_type == CCM_TYPE::CCM_3x3);
+    CV_Assert(typeid(*p->linear).name() == typeid(LinearGamma).name());
+    CV_Assert(typeid(p->cs).name() == typeid(sRGB_).name());
+    double gamma = dynamic_cast<LinearGamma*>(p->linear.get())->gamma;
+
+    Mat res_img = LUTGammaCorrection(img, gamma, img);
+
+    Mat ccm_bgr;
+    p->ccm.convertTo(ccm_bgr, CV_32F);
+    {
+        // swap rows and cols to get BGR (not RGB) color corection model
+        Mat row_0 = ccm_bgr.row(0).clone();
+        ccm_bgr.row(2).copyTo(ccm_bgr.row(0));
+        row_0.copyTo(ccm_bgr.row(2));
+
+        Mat col_0 = ccm_bgr.col(0).clone();
+        ccm_bgr.col(2).copyTo(ccm_bgr.col(0));
+        col_0.copyTo(ccm_bgr.col(2));
+    }
+
+    Mat float_img;
+    res_img.reshape(1, res_img.rows * res_img.cols).convertTo(float_img, CV_32F);
+
+    Mat mult_res = float_img * ccm_bgr;
+    mult_res = mult_res.reshape(img.channels(), img.rows);
+    //mult_res.convertTo(res_img, CV_8UC3);
+    //if (islinear)
+    //    return res_img;
+    //sRGB_& color_space = dynamic_cast<sRGB_&>(p->cs);
+    //res_img = LUT_EW(res_img, color_space.gamma, color_space.alpha, res_img);
+    sRGB_& color_space = dynamic_cast<sRGB_&>(p->cs);
+    mult_res = fromLFuncEW(mult_res, color_space.gamma, color_space.alpha, color_space.beta, color_space.phi);
+    mult_res.convertTo(res_img, CV_8UC3);
+    return res_img;
+}
+
 void ColorCorrectionModel::Impl::getColor(CONST_COLOR constcolor)
 {
     dst = (GetColor::getColor(constcolor));

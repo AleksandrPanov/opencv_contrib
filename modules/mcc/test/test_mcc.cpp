@@ -177,5 +177,34 @@ TEST(CV_mcc_ccm_test, infer)
 }
 
 
+TEST(CV_mcc_ccm_test, infer_uint8)
+{
+    string path = cvtest::findDataFile("mcc/mcc_ccm_test.jpg"); // mcc_ccm_test
+    Mat img = imread(path, IMREAD_COLOR);
+    // read gold calibrate img
+    path = cvtest::findDataFile("mcc/mcc_ccm_test_res.png");
+    Mat gold_img = imread(path);
+
+    // read gold chartsRGB
+    path = cvtest::findDataFile("mcc/mcc_ccm_test.yml");
+    FileStorage fs(path, FileStorage::READ);
+    Mat chartsRGB;
+    FileNode node = fs["chartsRGB"];
+    node >> chartsRGB;
+    fs.release();
+
+    // compute CCM
+    ColorCorrectionModel model(chartsRGB.col(1).clone().reshape(3, chartsRGB.rows/3) / 255., COLORCHECKER_Macbeth);
+    model.run();
+
+    // compute calibrate image
+    Mat calibratedImage = model.infer_uint8(img);
+    imshow("123", calibratedImage);
+    waitKey(0);
+    // check calibrated image
+    EXPECT_MAT_NEAR(gold_img, calibratedImage, 11);
+}
+
+
 } // namespace
 } // namespace opencv_test

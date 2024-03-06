@@ -507,6 +507,8 @@ public:
     */
     CV_WRAP Mat infer(const Mat& img, bool islinear = false);
 
+    CV_WRAP Mat infer_uint8(Mat& img, bool islinear = false);
+
     class Impl;
 private:
     std::shared_ptr<Impl> p;
