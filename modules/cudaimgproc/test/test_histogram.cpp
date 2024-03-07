@@ -284,6 +284,7 @@ TEST(EqualizeHist, infer)
     dst.download(tmp);
     //std::cout << "dst" << std::endl << tmp << std::endl;
     //EXPECT_MAT_NEAR(dst_gold, dst, 0.1);
+    imshow("src", src);
     imshow("dst", tmp);
     waitKey(0);
 }

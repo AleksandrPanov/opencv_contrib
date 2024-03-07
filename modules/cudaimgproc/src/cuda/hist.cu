@@ -59,7 +59,7 @@ __global__ void float_gamma(PtrStepSzf input, PtrStepSzf output, const float gam
     int rows = input.rows;
 
     if (x < cols && y < rows) {
-        output.ptr(y)[x] = pow(input.ptr(y)[x] / 255.f, gamma);
+        output.ptr(y)[x] = pow(input.ptr(y)[x] / 255.f, gamma)*255.;
     }
 }
 
@@ -78,7 +78,8 @@ __global__ void infer_float(PtrStepSzf b, PtrStepSzf g, PtrStepSzf r, PtrStepSzf
 
 void gammaCorrectionFloat(PtrStepSzf src, PtrStepSzf dst, const float gamma, cudaStream_t stream) {
     const dim3 block(32, 8);
-    const dim3 grid(divUp(src.rows, block.y));
+    //const dim3 grid(divUp(src.rows, block.y));
+    const dim3 grid(divUp(src.cols, block.x), divUp(src.rows, block.y));
     float_gamma<<<grid, block, 0, stream>>>(src, dst, gamma);
 
     cudaSafeCall( cudaGetLastError() );

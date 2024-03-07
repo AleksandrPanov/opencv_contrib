@@ -88,7 +88,7 @@ void cv::cuda::infer(InputArray _src, Mat ccm, OutputArray _dst, Stream& _stream
 
     src.convertTo(float_tmp, CV_32FC3, _stream);
     std::vector<GpuMat> bgrGpu;
-    cuda::split(src, bgrGpu, _stream);
+    cuda::split(float_tmp, bgrGpu, _stream);
     cudaSafeCall( cudaDeviceSynchronize() );
     // float_tmp = float_tmp.reshape(1, float_tmp.rows);
     // после gammaCorrectionFloat должна быть синхронизация, поэтому в качестве cudaStream_t передаётся 0
