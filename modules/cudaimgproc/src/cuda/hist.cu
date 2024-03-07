@@ -63,15 +63,15 @@ __global__ void float_gamma(PtrStepSzf input, PtrStepSzf output, const float gam
     }
 }
 
-__global__ void infer_float(PtrStepSzf input, PtrStepSzf output, const float gamma) {
+__global__ void infer_float(PtrStepSzf b, PtrStepSzf g, PtrStepSzf r, PtrStepSzf vec3, PtrStepSzf output, const float gamma) {
     int x = blockDim.x * blockIdx.x + threadIdx.x;
     int y = blockDim.y * blockIdx.y + threadIdx.y;
-    int cols = input.cols;
-    int rows = input.rows;
+    int cols = b.cols;
+    int rows = b.rows;
 
     if (x < cols && y < rows) {
         // float& b = 
-        output.ptr(y)[x] = pow(input.ptr(y)[x] / 255.f, gamma);
+        output.ptr(y)[x] = b.ptr(y)[x]*vec3[0] + g.ptr(y)[x]*vec3[1] + r.ptr(y)[x]*vec3[2];
     }
 }
 
