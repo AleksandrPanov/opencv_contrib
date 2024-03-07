@@ -52,6 +52,49 @@ using namespace cv::cuda::device;
 
 namespace hist
 {
+
+__device__ __forceinline__ float fromLFuncEW(const float& x) {
+    const float gamma2 = 2.3999999999999999f;
+    const float alpha = 1.0549999999999999f;
+    const float beta = 0.0030399346397784318f;
+    const float phi = 12.923210180787855f;
+    if (x > beta)
+        return alpha * pow(x, 1 / gamma2) - (alpha - 1);
+    else if (x >= -beta)
+        return x * phi;
+    else
+        return -(alpha * pow(-x, 1 / gamma2) - (alpha - 1));
+}
+
+__global__ void calibrateKernalF32C3(PtrStepSz<float3> input, PtrStepSz<float3> output, PtrStepSz<float3> ccm) {
+    int x = blockDim.x * blockIdx.x + threadIdx.x;
+    int y = blockDim.y * blockIdx.y + threadIdx.y;
+    int cols = input.cols;
+    int rows = input.rows;
+    const float gamma1 = 2.2000000000000002f;
+
+    if (x < cols && y < rows) {
+        const float3 in = input(y, x);
+        const float3 gamma = make_float3(pow(in.x / 255.f, gamma1), pow(in.y / 255.f, gamma1), pow(in.z / 255.f, gamma1));
+        const float3 mult = make_float3(gamma.x*ccm(0, 0).x + gamma.y*ccm(0, 0).y + gamma.z*ccm(0, 0).z,
+                                        gamma.x*ccm(1, 0).x + gamma.y*ccm(1, 0).y + gamma.z*ccm(1, 0).z,
+                                        gamma.x*ccm(2, 0).x + gamma.y*ccm(2, 0).y + gamma.z*ccm(2, 0).z);
+        output(y, x) = make_float3(fromLFuncEW(mult.x)*255.f, fromLFuncEW(mult.y)*255.f, fromLFuncEW(mult.z)*255.f);
+    }
+}
+
+void calibrateImageF32C3(PtrStepSz<float3> src, PtrStepSz<float3> dst, PtrStepSz<float3> ccm, cudaStream_t stream) {
+    const dim3 block(32, 8);
+    //const dim3 grid(divUp(src.rows, block.y));
+    const dim3 grid(divUp(src.cols, block.x), divUp(src.rows, block.y));
+    calibrateKernalF32C3<<<grid, block, 0, stream>>>(src, dst, ccm);
+
+    cudaSafeCall( cudaGetLastError() );
+
+    if (stream == 0)
+        cudaSafeCall( cudaDeviceSynchronize() );
+}
+
     template<bool fourByteAligned>
     __global__ void histogram256Kernel(const uchar* src, int cols, int rows, size_t step, int* hist, const int offsetX = 0)
     {

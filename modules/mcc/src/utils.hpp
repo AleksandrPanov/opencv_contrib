@@ -45,6 +45,13 @@ double gammaCorrection_(const double& element, const double& gamma);
  */
 Mat gammaCorrection(const Mat& src, const double& gamma);
 
+
+Mat LUTGammaCorrection(const Mat& src, const double& gamma, Mat dst=Mat());
+
+Mat LUT_EW(const Mat& src, double gamma, double alpha, Mat dst=Mat());
+
+Mat fromLFuncEW(const Mat& src, const float gamma, const float alpha, const float beta, const float phi, Mat dst=Mat());
+
 /** @brief maskCopyTo a function to delete unsatisfied elementwise.
     @param src the input array, type of Mat.
     @param mask operation mask that used to choose satisfided elementwise.
