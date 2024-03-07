@@ -313,16 +313,7 @@ Mat ColorCorrectionModel::infer_uint8(Mat& img, bool islinear)
 
     Mat ccm_bgr;
     p->ccm.convertTo(ccm_bgr, CV_32F);
-    {
-        // swap rows and cols to get BGR (not RGB) color corection model
-        Mat row_0 = ccm_bgr.row(0).clone();
-        ccm_bgr.row(2).copyTo(ccm_bgr.row(0));
-        row_0.copyTo(ccm_bgr.row(2));
-
-        Mat col_0 = ccm_bgr.col(0).clone();
-        ccm_bgr.col(2).copyTo(ccm_bgr.col(0));
-        col_0.copyTo(ccm_bgr.col(2));
-    }
+    flip(ccm_bgr, ccm_bgr, -1);
 
     Mat float_img;
     res_img.reshape(1, res_img.rows * res_img.cols).convertTo(float_img, CV_32F);
@@ -334,7 +325,7 @@ Mat ColorCorrectionModel::infer_uint8(Mat& img, bool islinear)
         return res_img;
     sRGB_& color_space = dynamic_cast<sRGB_&>(p->cs);
     res_img = LUT_EW(res_img, color_space.gamma, color_space.alpha, res_img);
-    //sRGB_& color_space = dynamic_cast<sRGB_&>(p->cs);
+
     //mult_res = fromLFuncEW(mult_res, color_space.gamma, color_space.alpha, color_space.beta, color_space.phi);
     //mult_res.convertTo(res_img, CV_8UC3);
     return res_img;

@@ -269,24 +269,30 @@ TEST(EqualizeHist, infer)
     string path = cvtest::findDataFile("../cv/mcc/mcc_ccm_test.jpg"); // mcc_ccm_test
     Mat src = imread(path, IMREAD_COLOR);
     //Mat src = randomMat(Size(4, 4), CV_8UC3);
-    //cv::Mat dst_gold = src;
-    //std::cout << "dst_gold" << std::endl << dst_gold << std::endl << std::endl;
+
 
     Mat ccm = (Mat_<double>(3, 3) <<
-        1., 1., 1.,
-        1., 1., 1.,
-        1., 1., 1.);
+        1.571657000185009, -0.280924394459268, 0.08453922109770311,
+        -0.02194530839037822, 1.377608706481052, -0.1803987912579378,
+        -0.02843995357976759, 0.3033531498800233, 1.471473866992415);
+
+    const double gamma1 = 2.2000000000000002;
+    const double gamma2 = 2.3999999999999999;
+    const double alpha = 1.0549999999999999;
+    const double beta = 0.0030399346397784318;
+    const double phi = 12.923210180787855;
 
     cv::cuda::GpuMat dst;
     cv::cuda::infer(loadMat(src), ccm, dst);
 
     Mat tmp;
     dst.download(tmp);
-    //std::cout << "dst" << std::endl << tmp << std::endl;
-    //EXPECT_MAT_NEAR(dst_gold, dst, 0.1);
-    imshow("src", src);
-    imshow("dst", tmp);
-    waitKey(0);
+    //imshow("src", src);
+    //imshow("dst", tmp);
+    //waitKey(0);
+    path = cvtest::findDataFile("../cv/mcc/mcc_ccm_test_res.png");
+    Mat gold_img = imread(path);
+    EXPECT_MAT_NEAR(gold_img, tmp, 1);
 }
 
 TEST(EqualizeHistIssue, Issue18035)

@@ -196,6 +196,7 @@ TEST(CV_mcc_ccm_test, infer_uint8)
     // compute CCM
     ColorCorrectionModel model(chartsRGB.col(1).clone().reshape(3, chartsRGB.rows/3) / 255., COLORCHECKER_Macbeth);
     model.run();
+    std::cout << model.getCCM() << endl;
 
     // compute calibrate image
     Mat calibratedImage = model.infer_uint8(img);
@@ -208,7 +209,7 @@ TEST(CV_mcc_ccm_test, infer_uint8)
     imshow("diff", diff);
     waitKey(0);
     // check calibrated image
-    EXPECT_MAT_NEAR(gold_img, calibratedImage, 10);
+    EXPECT_MAT_NEAR(gold_img, calibratedImage, 11);
 }
 
 

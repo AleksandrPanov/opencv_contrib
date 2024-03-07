@@ -70,8 +70,7 @@ namespace hist
 {
     void histogram256(PtrStepSzb src, int* hist, const int offsetX, cudaStream_t stream);
     void histogram256(PtrStepSzb src, PtrStepSzb mask, int* hist, const int offsetX, cudaStream_t stream);
-    void gammaCorrectionFloat(PtrStepSzf src, PtrStepSzf dst, const float gamma, cudaStream_t stream);
-    void gammaCorrectionFloat3(PtrStepSz<float3> src, PtrStepSz<float3> dst, const float gamma, cudaStream_t stream);
+    void calibrateImageF32C3(PtrStepSz<float3> src, PtrStepSz<float3> dst, PtrStepSz<float3> ccm, cudaStream_t stream);
 }
 
 void cv::cuda::calcHist(InputArray _src, OutputArray _hist, Stream& stream)
@@ -82,32 +81,28 @@ void cv::cuda::calcHist(InputArray _src, OutputArray _hist, Stream& stream)
 void cv::cuda::infer(InputArray _src, Mat ccm, OutputArray _dst, Stream& _stream) {
     GpuMat src = _src.getGpuMat();
     CV_Assert(src.type() == CV_8UC3);
+    CV_Assert(ccm.type() == CV_64F && ccm.rows == 3 && ccm.cols == 3);
     cudaStream_t stream = StreamAccessor::getStream(_stream);
     NppStreamHandler h(stream);
 
-    GpuMat float_tmp(src.size(), CV_32FC3);
-    src.convertTo(float_tmp, CV_32FC3, _stream);
-    hist::gammaCorrectionFloat3(float_tmp, float_tmp, 2.2f, stream);
-    //std::vector<GpuMat> bgrGpu;
-    //cuda::split(float_tmp, bgrGpu, _stream);
-    //cudaSafeCall( cudaDeviceSynchronize() );
-    //// после gammaCorrectionFloat должна быть синхронизация, поэтому в качестве cudaStream_t передаётся 0
-    //hist::gammaCorrectionFloat(bgrGpu[0], bgrGpu[0], 2.2f, stream);
-    //hist::gammaCorrectionFloat(bgrGpu[1], bgrGpu[1], 2.2f, stream);
-    //hist::gammaCorrectionFloat(bgrGpu[2], bgrGpu[2], 2.2f, stream);
-    cudaSafeCall( cudaDeviceSynchronize() );
-
-
     Mat ccm_float(3, 3, CV_32F);
     ccm.convertTo(ccm_float, CV_32FC1);
-    GpuMat ccm_gpu(3, 3, CV_32FC1);
+    cv::flip(ccm_float, ccm_float, -1);
+    cv::transpose(ccm_float, ccm_float);
+    ccm_float = ccm_float.reshape(3, 3);
+    GpuMat ccm_gpu(3, 1, CV_32FC3);
     ccm_gpu.upload(ccm_float);
+
+
+    GpuMat float_tmp(src.size(), CV_32FC3);
+    src.convertTo(float_tmp, CV_32FC3, _stream);
+    hist::calibrateImageF32C3(float_tmp, float_tmp, ccm_gpu, stream);
+    cudaSafeCall( cudaDeviceSynchronize() );
 
     _dst.create(src.size(), src.type());
     GpuMat dst = _dst.getGpuMat();
 
-    //cuda::merge(bgrGpu, float_tmp, _stream);
-    //float_tmp.reshape(3, src.rows).convertTo(dst, CV_8UC3, _stream);
+
     float_tmp.convertTo(dst, CV_8UC3, _stream);
     if (stream == 0)
         cudaSafeCall( cudaDeviceSynchronize() );
