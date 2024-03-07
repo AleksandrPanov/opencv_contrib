@@ -71,6 +71,7 @@ namespace hist
     void histogram256(PtrStepSzb src, int* hist, const int offsetX, cudaStream_t stream);
     void histogram256(PtrStepSzb src, PtrStepSzb mask, int* hist, const int offsetX, cudaStream_t stream);
     void gammaCorrectionFloat(PtrStepSzf src, PtrStepSzf dst, const float gamma, cudaStream_t stream);
+    void gammaCorrectionFloat3(PtrStepSz<float3> src, PtrStepSz<float3> dst, const float gamma, cudaStream_t stream);
 }
 
 void cv::cuda::calcHist(InputArray _src, OutputArray _hist, Stream& stream)
@@ -85,16 +86,15 @@ void cv::cuda::infer(InputArray _src, Mat ccm, OutputArray _dst, Stream& _stream
     NppStreamHandler h(stream);
 
     GpuMat float_tmp(src.size(), CV_32FC3);
-
     src.convertTo(float_tmp, CV_32FC3, _stream);
-    std::vector<GpuMat> bgrGpu;
-    cuda::split(float_tmp, bgrGpu, _stream);
-    cudaSafeCall( cudaDeviceSynchronize() );
-    // float_tmp = float_tmp.reshape(1, float_tmp.rows);
-    // после gammaCorrectionFloat должна быть синхронизация, поэтому в качестве cudaStream_t передаётся 0
-    hist::gammaCorrectionFloat(bgrGpu[0], bgrGpu[0], 2.2f, stream);
-    hist::gammaCorrectionFloat(bgrGpu[1], bgrGpu[1], 2.2f, stream);
-    hist::gammaCorrectionFloat(bgrGpu[2], bgrGpu[2], 2.2f, stream);
+    hist::gammaCorrectionFloat3(float_tmp, float_tmp, 2.2f, stream);
+    //std::vector<GpuMat> bgrGpu;
+    //cuda::split(float_tmp, bgrGpu, _stream);
+    //cudaSafeCall( cudaDeviceSynchronize() );
+    //// после gammaCorrectionFloat должна быть синхронизация, поэтому в качестве cudaStream_t передаётся 0
+    //hist::gammaCorrectionFloat(bgrGpu[0], bgrGpu[0], 2.2f, stream);
+    //hist::gammaCorrectionFloat(bgrGpu[1], bgrGpu[1], 2.2f, stream);
+    //hist::gammaCorrectionFloat(bgrGpu[2], bgrGpu[2], 2.2f, stream);
     cudaSafeCall( cudaDeviceSynchronize() );
 
 
@@ -106,7 +106,7 @@ void cv::cuda::infer(InputArray _src, Mat ccm, OutputArray _dst, Stream& _stream
     _dst.create(src.size(), src.type());
     GpuMat dst = _dst.getGpuMat();
 
-    cuda::merge(bgrGpu, float_tmp, _stream);
+    //cuda::merge(bgrGpu, float_tmp, _stream);
     //float_tmp.reshape(3, src.rows).convertTo(dst, CV_8UC3, _stream);
     float_tmp.convertTo(dst, CV_8UC3, _stream);
     if (stream == 0)

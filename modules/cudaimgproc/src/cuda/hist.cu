@@ -63,6 +63,7 @@ __global__ void float_gamma(PtrStepSzf input, PtrStepSzf output, const float gam
     }
 }
 
+
 __global__ void infer_float(PtrStepSzf b, PtrStepSzf g, PtrStepSzf r, PtrStepSzf vec3, PtrStepSzf output, const float gamma) {
     int x = blockDim.x * blockIdx.x + threadIdx.x;
     int y = blockDim.y * blockIdx.y + threadIdx.y;
@@ -81,6 +82,31 @@ void gammaCorrectionFloat(PtrStepSzf src, PtrStepSzf dst, const float gamma, cud
     //const dim3 grid(divUp(src.rows, block.y));
     const dim3 grid(divUp(src.cols, block.x), divUp(src.rows, block.y));
     float_gamma<<<grid, block, 0, stream>>>(src, dst, gamma);
+
+    cudaSafeCall( cudaGetLastError() );
+
+    if (stream == 0)
+        cudaSafeCall( cudaDeviceSynchronize() );
+}
+
+
+__global__ void float_gamma3(PtrStepSz<float3> input, PtrStepSz<float3> output, const float gamma) {
+    int x = blockDim.x * blockIdx.x + threadIdx.x;
+    int y = blockDim.y * blockIdx.y + threadIdx.y;
+    int cols = input.cols;
+    int rows = input.rows;
+
+    if (x < cols && y < rows) {
+        const float3 in = input(y, x);
+        output(y, x) = make_float3(pow(in.x / 255.f, gamma)*255.f, pow(in.y / 255.f, gamma)*255.f, pow(in.z / 255.f, gamma)*255.f);
+    }
+}
+
+void gammaCorrectionFloat3(PtrStepSz<float3> src, PtrStepSz<float3> dst, const float gamma, cudaStream_t stream) {
+    const dim3 block(32, 8);
+    //const dim3 grid(divUp(src.rows, block.y));
+    const dim3 grid(divUp(src.cols, block.x), divUp(src.rows, block.y));
+    float_gamma3<<<grid, block, 0, stream>>>(src, dst, gamma);
 
     cudaSafeCall( cudaGetLastError() );
 
