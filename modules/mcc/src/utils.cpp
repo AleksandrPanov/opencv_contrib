@@ -60,7 +60,7 @@ Mat LUT_EW(const Mat& src, const double gamma, const double alpha, Mat dst) {
         double res = 0.;
         if (x > 0.)
             res = alpha * pow(x, 1 / gamma) - (alpha - 1);
-        // other conditions from fromLFuncEW cannot be executed
+        // other conditions from original fromLFuncEW cannot be executed
         p[i] = saturate_cast<uchar>(res * 255.0);
     }
     if (dst.empty() || !dst.isContinuous() || dst.total() != src.total() || dst.type() != src.type())

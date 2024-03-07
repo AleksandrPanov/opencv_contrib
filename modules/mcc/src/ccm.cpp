@@ -329,14 +329,14 @@ Mat ColorCorrectionModel::infer_uint8(Mat& img, bool islinear)
 
     Mat mult_res = float_img * ccm_bgr;
     mult_res = mult_res.reshape(img.channels(), img.rows);
-    //mult_res.convertTo(res_img, CV_8UC3);
-    //if (islinear)
-    //    return res_img;
-    //sRGB_& color_space = dynamic_cast<sRGB_&>(p->cs);
-    //res_img = LUT_EW(res_img, color_space.gamma, color_space.alpha, res_img);
-    sRGB_& color_space = dynamic_cast<sRGB_&>(p->cs);
-    mult_res = fromLFuncEW(mult_res, color_space.gamma, color_space.alpha, color_space.beta, color_space.phi);
     mult_res.convertTo(res_img, CV_8UC3);
+    if (islinear)
+        return res_img;
+    sRGB_& color_space = dynamic_cast<sRGB_&>(p->cs);
+    res_img = LUT_EW(res_img, color_space.gamma, color_space.alpha, res_img);
+    //sRGB_& color_space = dynamic_cast<sRGB_&>(p->cs);
+    //mult_res = fromLFuncEW(mult_res, color_space.gamma, color_space.alpha, color_space.beta, color_space.phi);
+    //mult_res.convertTo(res_img, CV_8UC3);
     return res_img;
 }
 

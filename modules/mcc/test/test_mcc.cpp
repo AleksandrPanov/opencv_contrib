@@ -199,10 +199,16 @@ TEST(CV_mcc_ccm_test, infer_uint8)
 
     // compute calibrate image
     Mat calibratedImage = model.infer_uint8(img);
-    imshow("123", calibratedImage);
+    imshow("calibratedImage", calibratedImage);
+    waitKey(0);
+    Mat diff;
+    absdiff(gold_img, calibratedImage, diff);
+    Scalar m = mean(diff);
+    cout << m << endl;
+    imshow("diff", diff);
     waitKey(0);
     // check calibrated image
-    EXPECT_MAT_NEAR(gold_img, calibratedImage, 11);
+    EXPECT_MAT_NEAR(gold_img, calibratedImage, 10);
 }
 
 

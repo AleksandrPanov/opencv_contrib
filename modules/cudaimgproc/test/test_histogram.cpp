@@ -264,6 +264,17 @@ INSTANTIATE_TEST_CASE_P(CUDA_ImgProc, EqualizeHist, testing::Combine(
     ALL_DEVICES,
     DIFFERENT_SIZES));
 
+TEST(EqualizeHist, infer)
+{
+    cv::Mat src = randomMat(Size(100, 100), CV_8UC3);
+
+    cv::cuda::GpuMat dst;
+    cv::cuda::infer(loadMat(src), dst);
+
+    cv::Mat dst_gold = src;
+    EXPECT_MAT_NEAR(dst_gold, dst, 0.0);
+}
+
 TEST(EqualizeHistIssue, Issue18035)
 {
     std::vector<std::string> imgPaths;
