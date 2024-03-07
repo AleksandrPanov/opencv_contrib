@@ -148,7 +148,15 @@ The methods support arbitrary permutations of the original channels, including r
  */
 CV_EXPORTS void swapChannels(InputOutputArray image, const int dstOrder[4], Stream& stream = Stream::Null());
 
-CV_EXPORTS_W void infer(InputArray src, Mat ccm, OutputArray dst, Stream& stream = Stream::Null());
+
+/** @brief calibrate input CV_8UC3 image (GpuMat, BGR format) and return new CV_8UC3 image (GpuMat, BGR format)
+
+@param src - input GpuMat with type CV_8UC3, BGR format
+@param ccm - input CCM with type CV_64F and size 3x3
+@param dst - output GpuMat with type CV_8UC3, BGR format
+The methods support arbitrary permutations of the original channels, including replication.
+ */
+CV_EXPORTS_W void calibrateImageF32C3(InputArray src, Mat ccm, OutputArray dst, Stream& stream = Stream::Null());
 
 /** @brief Routines for correcting image color gamma.
 

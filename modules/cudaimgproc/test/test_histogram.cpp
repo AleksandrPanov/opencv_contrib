@@ -283,7 +283,7 @@ TEST(EqualizeHist, infer)
     const double phi = 12.923210180787855;
 
     cv::cuda::GpuMat dst;
-    cv::cuda::infer(loadMat(src), ccm, dst);
+    cv::cuda::calibrateImageF32C3(loadMat(src), ccm, dst);
 
     Mat tmp;
     dst.download(tmp);

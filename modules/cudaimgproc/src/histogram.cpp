@@ -78,7 +78,7 @@ void cv::cuda::calcHist(InputArray _src, OutputArray _hist, Stream& stream)
     calcHist(_src, cv::cuda::GpuMat(), _hist, stream);
 }
 
-void cv::cuda::infer(InputArray _src, Mat ccm, OutputArray _dst, Stream& _stream) {
+void cv::cuda::calibrateImageF32C3(InputArray _src, Mat ccm, OutputArray _dst, Stream& _stream) {
     GpuMat src = _src.getGpuMat();
     CV_Assert(src.type() == CV_8UC3);
     CV_Assert(ccm.type() == CV_64F && ccm.rows == 3 && ccm.cols == 3);
