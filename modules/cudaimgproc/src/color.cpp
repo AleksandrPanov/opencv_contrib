@@ -2206,25 +2206,6 @@ void cv::cuda::swapChannels(InputOutputArray _image, const int dstOrder[4], Stre
         cudaSafeCall( cudaDeviceSynchronize() );
 }
 
-void cv::cuda::infer(InputArray _src, OutputArray _dst, Stream& _stream) {
-    GpuMat src = _src.getGpuMat();
-    CV_Assert(src.type() == CV_8UC3);
-    //cudaStream_t stream = StreamAccessor::getStream(_stream);
-    //NppStreamHandler h(stream);
-
-    GpuMat float_dst(src.size(), CV_32FC3);
-    src.convertTo(float_dst, CV_32FC3, _stream);
-
-
-
-    _dst.create(src.size(), src.type());
-    GpuMat dst = _dst.getGpuMat();
-    float_dst.convertTo(dst, CV_8UC3, _stream);
-    //if (stream == 0)
-    //    cudaSafeCall( cudaDeviceSynchronize() );
-}
-
-
 ////////////////////////////////////////////////////////////////////////
 // gammaCorrection
 

@@ -70,11 +70,46 @@ namespace hist
 {
     void histogram256(PtrStepSzb src, int* hist, const int offsetX, cudaStream_t stream);
     void histogram256(PtrStepSzb src, PtrStepSzb mask, int* hist, const int offsetX, cudaStream_t stream);
+    void gammaCorrectionFloat(PtrStepSzf src, PtrStepSzf dst, const float gamma, cudaStream_t stream);
 }
 
 void cv::cuda::calcHist(InputArray _src, OutputArray _hist, Stream& stream)
 {
     calcHist(_src, cv::cuda::GpuMat(), _hist, stream);
+}
+
+void cv::cuda::infer(InputArray _src, Mat ccm, OutputArray _dst, Stream& _stream) {
+    GpuMat src = _src.getGpuMat();
+    CV_Assert(src.type() == CV_8UC3);
+    cudaStream_t stream = StreamAccessor::getStream(_stream);
+    NppStreamHandler h(stream);
+
+    GpuMat float_tmp(src.size(), CV_32FC3);
+
+    src.convertTo(float_tmp, CV_32FC3, _stream);
+    std::vector<GpuMat> bgrGpu;
+    cuda::split(src, bgrGpu, _stream);
+    // float_tmp = float_tmp.reshape(1, float_tmp.rows);
+    // после gammaCorrectionFloat должна быть синхронизация, поэтому в качестве cudaStream_t передаётся 0
+    hist::gammaCorrectionFloat(bgrGpu[0], bgrGpu[0], 2.2f, 0);
+    //hist::gammaCorrectionFloat(bgrGpu[1], bgrGpu[1], 2.2f, 0);
+    //hist::gammaCorrectionFloat(bgrGpu[2], bgrGpu[2], 2.2f, 0);
+    //cuda::multiply(float_dst, 255.f, float_dst);
+
+    Mat ccm_float(3, 3, CV_32F);
+    ccm.convertTo(ccm_float, CV_32FC1);
+    GpuMat ccm_gpu(3, 3, CV_32FC1);
+    ccm_gpu.upload(ccm_float);
+
+
+
+
+    _dst.create(src.size(), src.type());
+    GpuMat dst = _dst.getGpuMat();
+
+    //float_tmp.reshape(3, src.rows).convertTo(dst, CV_8UC3, _stream);
+    if (stream == 0)
+        cudaSafeCall( cudaDeviceSynchronize() );
 }
 
 void cv::cuda::calcHist(InputArray _src, InputArray _mask, OutputArray _hist, Stream& stream)

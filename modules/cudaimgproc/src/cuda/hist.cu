@@ -52,6 +52,41 @@ using namespace cv::cuda::device;
 
 namespace hist
 {
+__global__ void float_gamma(PtrStepSzf input, PtrStepSzf output, const float gamma) {
+    int x = blockDim.x * blockIdx.x + threadIdx.x;
+    int y = blockDim.y * blockIdx.y + threadIdx.y;
+    int cols = input.cols;
+    int rows = input.rows;
+
+    if (x < cols && y < rows) {
+        output.ptr(y)[x] = pow(input.ptr(y)[x] / 255.f, gamma);
+    }
+}
+
+__global__ void infer_float(PtrStepSzf input, PtrStepSzf output, const float gamma) {
+    int x = blockDim.x * blockIdx.x + threadIdx.x;
+    int y = blockDim.y * blockIdx.y + threadIdx.y;
+    int cols = input.cols;
+    int rows = input.rows;
+
+    if (x < cols && y < rows) {
+        // float& b = 
+        output.ptr(y)[x] = pow(input.ptr(y)[x] / 255.f, gamma);
+    }
+}
+
+
+void gammaCorrectionFloat(PtrStepSzf src, PtrStepSzf dst, const float gamma, cudaStream_t stream) {
+    const dim3 block(32, 8);
+    const dim3 grid(divUp(src.rows, block.y));
+    float_gamma<<<grid, block, 0, stream>>>(src, dst, gamma);
+
+    cudaSafeCall( cudaGetLastError() );
+
+    if (stream == 0)
+        cudaSafeCall( cudaDeviceSynchronize() );
+}
+
     template<bool fourByteAligned>
     __global__ void histogram256Kernel(const uchar* src, int cols, int rows, size_t step, int* hist, const int offsetX = 0)
     {
