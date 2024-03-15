@@ -14,6 +14,7 @@ namespace opencv_test
 {
 using namespace cv::mcc;
 using namespace cv::ccm;
+using namespace perf;
 }
 
 #endif

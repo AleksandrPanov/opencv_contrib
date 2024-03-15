@@ -24,6 +24,7 @@ PERF_TEST(CV_mcc_perf, detect) {
 }
 
 PERF_TEST(CV_mcc_perf, infer) {
+
     // read gold chartsRGB
     string path = cvtest::findDataFile("cv/mcc/mcc_ccm_test.yml");
     FileStorage fs(path, FileStorage::READ);
